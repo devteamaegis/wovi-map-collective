@@ -1,3 +1,6 @@
+// FX rates (#11 multi-currency). Quotes in any currency convert to a USD base so
+// DOA approval bands and quote comparisons are apples-to-apples. Rates are seeded
+// with sane defaults (lib/db.ts) and editable on the integrations page.
 import "server-only";
 import { getDb } from "../db";
 import { nowIso } from "./util";

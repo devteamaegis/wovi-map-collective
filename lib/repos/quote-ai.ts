@@ -1,3 +1,7 @@
+// Quote parsing entry point (#3). Uses an LLM when WOVI_AI_KEY is configured,
+// otherwise the deterministic heuristic parser (lib/reserve/parse.ts). Always
+// falls back to the heuristic on any error, and never auto-commits — parsed
+// values land in an editable form for a human to confirm.
 import "server-only";
 import { heuristicParseQuote, type ParsedQuote } from "../reserve/parse";
 

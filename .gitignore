@@ -18,3 +18,4 @@ wovi.db-shm
 .claude-flow/
 .swarm/
 *.tsbuildinfo
+.vercel
