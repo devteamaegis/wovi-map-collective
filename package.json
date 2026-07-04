@@ -1,0 +1,35 @@
+{
+  "name": "wovi-broker-console",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "seed:demo": "node scripts/seed-reset.mjs",
+    "seed:reset": "node scripts/seed-reset.mjs",
+    "db:clear": "node scripts/db-clear.mjs",
+    "backup": "node scripts/backup.mjs",
+    "test": "node scripts/test.mjs"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.8.1",
+    "lucide-react": "^0.469.0",
+    "next": "^15.3.9",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "react-force-graph-2d": "^1.27.0",
+    "server-only": "^0.0.1"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.12",
+    "@types/node": "^20.17.16",
+    "@types/react": "^19.0.8",
+    "@types/react-dom": "^19.0.3",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.5.1",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.7.3"
+  }
+}

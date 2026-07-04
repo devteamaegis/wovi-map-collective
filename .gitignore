@@ -1,0 +1,20 @@
+/node_modules
+/.next
+/out
+/build
+*.tsbuildinfo
+next-env.d.ts
+wovi.db
+wovi.db-journal
+wovi.db-wal
+wovi.db-shm
+.DS_Store
+.env*
+!.env.example
+/uploads
+/backups
+
+# tooling artifacts
+.claude-flow/
+.swarm/
+*.tsbuildinfo

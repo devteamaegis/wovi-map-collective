@@ -1,0 +1,306 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --paper: #fbfcfd;
+  --paper-2: #f1f4f7;
+  --paper-3: #e9eef2;
+  --ink: #131a24;
+  --ink-2: #3a4654;
+  --ink-3: #6b7886;
+  --rule: #dde3e9;
+  --navy: #12171f;
+  --navy-2: #0e131a;
+  --accent: #4a6e92;
+  --accent-2: #6e93b6;
+  --accent-pale: #dce6ef;
+  --warn: #c0843c;
+  --good: #3e7d6a;
+}
+
+* {
+  border-color: var(--rule);
+}
+
+html,
+body {
+  padding: 0;
+  margin: 0;
+  /* Guard against off-canvas overlays briefly painting a horizontal scrollbar */
+  overflow-x: hidden;
+}
+
+/* Prevent iOS Safari auto-zoom when focusing form controls on phones */
+@media (max-width: 640px) {
+  .field,
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-inter), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: var(--accent-pale);
+  color: var(--ink);
+}
+
+/* Slim, calm scrollbars */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--paper-3);
+  border-radius: 8px;
+  border: 2px solid var(--paper);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #d4dbe2;
+}
+
+@layer components {
+  .serif {
+    font-family: var(--font-newsreader), Georgia, serif;
+  }
+  .mono {
+    font-family: var(--font-plex-mono), ui-monospace, monospace;
+  }
+
+  /* Uppercase mono eyebrow with a small accent dot */
+  .eyebrow {
+    font-family: var(--font-plex-mono), ui-monospace, monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    font-size: 11px;
+    color: var(--ink-3);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    line-height: 1;
+  }
+  .eyebrow::before {
+    content: "";
+    width: 5px;
+    height: 5px;
+    border-radius: 9999px;
+    background: var(--accent);
+    display: inline-block;
+  }
+  .eyebrow--light {
+    color: rgba(255, 255, 255, 0.6);
+  }
+  .eyebrow--light::before {
+    background: var(--accent-2);
+  }
+
+  .card {
+    background: #fff;
+    border: 1px solid var(--rule);
+    border-radius: 0.875rem;
+    box-shadow: 0 1px 2px rgba(19, 26, 36, 0.04);
+  }
+
+  .hairline {
+    border-color: var(--rule);
+  }
+
+  /* Buttons */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 0.5rem 0.85rem;
+    border-radius: 0.6rem;
+    border: 1px solid var(--rule);
+    background: #fff;
+    color: var(--ink);
+    cursor: pointer;
+    transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+    white-space: nowrap;
+  }
+  .btn:hover {
+    background: var(--paper-2);
+  }
+  .btn-primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+  .btn-primary:hover {
+    background: #3f5f7f;
+    border-color: #3f5f7f;
+  }
+  .btn-ghost {
+    border-color: transparent;
+    background: transparent;
+  }
+  .btn-ghost:hover {
+    background: var(--paper-2);
+  }
+  .btn-good {
+    background: var(--good);
+    border-color: var(--good);
+    color: #fff;
+  }
+  .btn-good:hover {
+    filter: brightness(0.95);
+  }
+  .btn-warn {
+    background: #fff;
+    border-color: var(--warn);
+    color: var(--warn);
+  }
+  .btn-warn:hover {
+    background: #fbf3e9;
+  }
+  .btn-danger {
+    background: #fff;
+    border-color: #c45b52;
+    color: #c45b52;
+  }
+  .btn-danger:hover {
+    background: #fbeceb;
+  }
+  .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  .btn-sm {
+    padding: 0.3rem 0.6rem;
+    font-size: 12px;
+  }
+
+  /* Form fields */
+  .field {
+    width: 100%;
+    border: 1px solid var(--rule);
+    border-radius: 0.55rem;
+    padding: 0.55rem 0.7rem;
+    font-size: 14px;
+    background: #fff;
+    color: var(--ink);
+    transition: border-color 0.12s ease, box-shadow 0.12s ease;
+  }
+  .field:focus {
+    outline: none;
+    border-color: var(--accent-2);
+    box-shadow: 0 0 0 3px var(--accent-pale);
+  }
+  .label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--ink-2);
+    margin-bottom: 0.3rem;
+    display: block;
+  }
+
+  .link-accent {
+    color: var(--accent);
+    text-decoration: none;
+  }
+  .link-accent:hover {
+    text-decoration: underline;
+  }
+}
+
+/* react-force-graph fills its container */
+.force-graph-container canvas {
+  outline: none;
+  display: block;
+}
+
+/* ---- Onboarding (welcome + spotlight tour) ------------------------------- */
+
+@keyframes obFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes obFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes obGrow {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+@keyframes obDraw {
+  from {
+    stroke-dasharray: 200;
+    stroke-dashoffset: 200;
+  }
+  to {
+    stroke-dasharray: 200;
+    stroke-dashoffset: 0;
+  }
+}
+
+.ob-fade-up {
+  animation: obFadeUp 0.5s ease both;
+}
+.ob-overlay {
+  animation: obFade 0.28s ease both;
+}
+.ob-grow {
+  transform-origin: left center;
+  animation: obGrow 0.7s ease both;
+  animation-delay: 0.25s;
+}
+.ob-draw {
+  animation: obDraw 0.7s ease both;
+  animation-delay: 0.45s;
+}
+
+/* The spotlight: a transparent box whose huge shadow dims everything else */
+.ob-spotlight {
+  box-shadow:
+    0 0 0 9999px rgba(14, 19, 26, 0.6),
+    0 0 0 2px var(--accent-2) inset;
+  transition:
+    top 0.25s ease,
+    left 0.25s ease,
+    width 0.25s ease,
+    height 0.25s ease;
+}
+.ob-coach {
+  animation: obFadeUp 0.22s ease both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ob-fade-up,
+  .ob-overlay,
+  .ob-grow,
+  .ob-draw,
+  .ob-coach {
+    animation: none !important;
+  }
+  .ob-spotlight {
+    transition: none !important;
+  }
+}

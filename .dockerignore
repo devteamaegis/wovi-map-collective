@@ -1,0 +1,11 @@
+node_modules
+.next
+.git
+wovi.db
+wovi.db-*
+uploads
+backups
+*.log
+npm-debug.log*
+.DS_Store
+README.md
