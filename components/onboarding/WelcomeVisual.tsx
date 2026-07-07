@@ -215,7 +215,7 @@ export function WelcomeVisual({ variant }: { variant: WelcomeVariant }) {
               <div className="serif mt-1 text-[15px] leading-tight text-white/90">
                 {a}
               </div>
-              <div className="text-[11px] text-white/45">{b}</div>
+              <div className="text-[11px] text-white/60">{b}</div>
             </div>
           ))}
         </div>

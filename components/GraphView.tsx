@@ -389,7 +389,7 @@ export function GraphView({ data }: { data: GraphData }) {
                 onKeyDown={(e) => e.key === "Enter" && doFocus()}
                 placeholder="Node name…"
                 id="gf-focus"
-                className="w-full rounded-md border border-white/15 bg-white/5 px-2 py-1.5 text-[13px] text-white placeholder:text-white/45 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#6e93b6]"
+                className="w-full rounded-md border border-white/15 bg-white/5 px-2 py-1.5 text-[13px] text-white placeholder:text-white/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#6e93b6]"
               />
               <button
                 onClick={doFocus}
@@ -453,15 +453,13 @@ export function GraphView({ data }: { data: GraphData }) {
       <div
         ref={wrapRef}
         data-tour="graph-canvas"
-        role="img"
-        aria-label={`Relationship graph — ${graph.nodes.length} nodes and ${graph.links.length} edges. A keyboard-navigable list of the same nodes and edges follows.`}
         className="relative min-w-0 flex-1 touch-none bg-navy"
       >
         {/* Non-visual, keyboard-reachable equivalent of the canvas: the same
             nodes and edges as buttons that open the detail panel. This is the
-            only path to the relationship data for keyboard / screen-reader
-            users (the <canvas> exposes nothing to the AT tree). */}
-        <ul className="sr-only">
+            accessible representation — the <canvas> below is aria-hidden since it
+            exposes nothing to the AT tree. */}
+        <ul className="sr-only" aria-label="Relationship graph nodes and edges">
           <li>
             {graph.nodes.length} nodes and {graph.links.length} edges. Activate a
             node or edge to open its details.
@@ -488,6 +486,8 @@ export function GraphView({ data }: { data: GraphData }) {
             );
           })}
         </ul>
+        {/* Visual canvas — hidden from AT; the list above is the accessible form. */}
+        <div aria-hidden="true">
         <ForceGraph2D
           ref={fgRef}
           width={size.w}
@@ -557,6 +557,7 @@ export function GraphView({ data }: { data: GraphData }) {
             ctx.fill();
           }}
         />
+        </div>
 
         {/* Legend — kept (compact) on mobile too, since node color = kind and
             line style = consent are otherwise an unexplained encoding there. */}

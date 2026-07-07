@@ -353,6 +353,7 @@ export function IntegrationsPanel({
             value={role}
             onChange={(e) => setRole(e.target.value)}
             placeholder="Role (e.g. CFO)"
+            aria-label="DOA role"
             className="field col-span-2 sm:col-span-1"
           />
           <input
@@ -360,6 +361,7 @@ export function IntegrationsPanel({
             onChange={(e) => setMinA(e.target.value)}
             placeholder="Min $"
             type="number"
+            aria-label="Minimum amount"
             className="field"
           />
           <input
@@ -367,11 +369,13 @@ export function IntegrationsPanel({
             onChange={(e) => setMaxA(e.target.value)}
             placeholder="Max $ (blank = ∞)"
             type="number"
+            aria-label="Maximum amount"
             className="field"
           />
           <select
             value={approver}
             onChange={(e) => setApprover(e.target.value)}
+            aria-label="Approver"
             className="field"
           >
             <option value="">Approver…</option>

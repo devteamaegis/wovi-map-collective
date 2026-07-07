@@ -500,7 +500,7 @@ function PathPanel({
                   </div>
                 ))}
                 {path.status === "consented" ? (
-                  <div className="flex items-center gap-2 rounded-lg bg-[#e4efea] px-3 py-2 text-[12px] text-good">
+                  <div className="flex items-center gap-2 rounded-lg bg-[#e4efea] px-3 py-2 text-[12px] text-good-text">
                     <CheckCircle2 size={14} /> Double opt-in reached — a consented
                     intro edge has formed and the graph strengthened.
                   </div>

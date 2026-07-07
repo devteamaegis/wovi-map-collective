@@ -30,6 +30,7 @@ const config: Config = {
         },
         warn: "var(--warn)",
         good: "var(--good)",
+        "good-text": "var(--good-text)", // AA green for text on light-green tints
         danger: "var(--danger)", // resolves text-danger / hover:text-danger (previously undefined → no-op)
         surface: "var(--surface)",
       },

@@ -92,7 +92,7 @@ function Stage({
         <span
           className={`grid h-7 w-7 shrink-0 place-items-center rounded-full text-[12px] font-medium ${
             state === "done"
-              ? "bg-[#e4efea] text-good"
+              ? "bg-[#e4efea] text-good-text"
               : state === "active"
                 ? "bg-accent text-white"
                 : "bg-paper-2 text-ink-3"
@@ -158,7 +158,7 @@ export function SpotBuyWorkspace({ detail }: { detail: Detail }) {
                 <span
                   className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-[11px] ${
                     st === "done"
-                      ? "bg-[#e4efea] text-good"
+                      ? "bg-[#e4efea] text-good-text"
                       : st === "active"
                         ? "bg-navy text-white"
                         : "bg-paper-2 text-ink-3"
@@ -486,7 +486,7 @@ function RfqDraft({ rfq, invites, candidates, actor, onRun, pending }: any) {
               >
                 {c.name}
                 {c.approved ? (
-                  <span className="rounded bg-[#e4efea] px-1 text-[10px] text-good">
+                  <span className="rounded bg-[#e4efea] px-1 text-[10px] text-good-text">
                     approved
                   </span>
                 ) : null}

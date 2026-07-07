@@ -170,7 +170,7 @@ export default function DashboardPage() {
             <Card className="divide-y divide-rule">
               {strengthened.map((s) => (
                 <div key={s.id} className="flex items-start gap-3 px-4 py-3">
-                  <span className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[#e4efea] text-good">
+                  <span className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[#e4efea] text-good-text">
                     <TrendingUp size={14} />
                   </span>
                   <div className="min-w-0 flex-1">

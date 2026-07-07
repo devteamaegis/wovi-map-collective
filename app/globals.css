@@ -9,10 +9,11 @@
   --surface: #fff; /* card/button/field surface — the one value that had escaped the token set */
   --ink: #131a24;
   --ink-2: #3a4654;
-  /* Darkened from #6b7886 so secondary text clears AA 4.5:1 on every paper tint
-     (was 4.39:1 on --paper, 4.09:1 on --paper-2 at 11–13px). Now ~5.7:1 on white,
-     ~5.5:1 on --paper, ~5.15:1 on --paper-2. */
-  --ink-3: #5c6875;
+  /* Darkened from #6b7886 so secondary text clears AA 4.5:1 on every surface it
+     renders over — including --accent-pale (#dce6ef), the darkest, where #5c6875
+     landed at 4.49:1. #586470 → white 6.0:1, --paper 5.9:1, --paper-2 5.5:1,
+     --accent-pale 4.8:1. */
+  --ink-3: #586470;
   --rule: #dde3e9;
   --navy: #12171f;
   --navy-2: #0e131a;
@@ -22,6 +23,7 @@
   --warn: #c0843c;
   --warn-text: #8a5d21; /* AA-compliant amber for text (var(--warn) is border/icon only) */
   --good: #3e7d6a;
+  --good-text: #2c5d4e; /* AA green for text on the #e4efea tint (6.4:1); --good is 4.1:1 there */
   --danger: #9b3f37; /* AA-compliant red for text: 6.6:1 on white */
 }
 

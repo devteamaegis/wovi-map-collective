@@ -124,7 +124,7 @@ export function MobileMenu() {
               The manual work is{" "}
               <span className="italic text-accent-2">the moat.</span>
             </p>
-            <p className="mt-1.5 text-[11px] leading-relaxed text-white/45">
+            <p className="mt-1.5 text-[11px] leading-relaxed text-white/60">
               Every consented intro compounds into the graph.
             </p>
           </div>
