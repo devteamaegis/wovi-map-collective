@@ -5,6 +5,7 @@ import { AuthCard } from "@/components/auth/AuthCard";
 import { ApproveConfirm } from "@/components/reserve/ApproveConfirm";
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Approve" };
 
 export default async function ApprovePage({
   searchParams,

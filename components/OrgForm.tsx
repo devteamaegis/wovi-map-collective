@@ -18,9 +18,9 @@ export function OrgForm({
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div>
-          <label className="label">Name</label>
+          <label className="label" htmlFor="name">Name</label>
           <input
-            name="name"
+            id="name" name="name"
             required
             defaultValue={org?.name}
             className="field"
@@ -28,8 +28,8 @@ export function OrgForm({
           />
         </div>
         <div>
-          <label className="label">Kind</label>
-          <select name="kind" className="field" defaultValue={org?.kind || "supplier"}>
+          <label className="label" htmlFor="kind">Kind</label>
+          <select id="kind" name="kind" className="field" defaultValue={org?.kind || "supplier"}>
             <option value="buyer">Buyer</option>
             <option value="supplier">Supplier</option>
             <option value="broker">Broker</option>
@@ -40,18 +40,18 @@ export function OrgForm({
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div>
-          <label className="label">Country</label>
+          <label className="label" htmlFor="country">Country</label>
           <input
-            name="country"
+            id="country" name="country"
             defaultValue={org?.country || ""}
             className="field"
             placeholder="e.g. Germany"
           />
         </div>
         <div>
-          <label className="label">Region</label>
+          <label className="label" htmlFor="region">Region</label>
           <input
-            name="region"
+            id="region" name="region"
             defaultValue={org?.region || ""}
             className="field"
             list="region-options"
@@ -68,18 +68,18 @@ export function OrgForm({
       </div>
 
       <div>
-        <label className="label">Materials / commodity tags</label>
+        <label className="label" htmlFor="materials">Materials / commodity tags</label>
         <input
-          name="materials"
+          id="materials" name="materials"
           defaultValue={org?.materials.join(", ") || ""}
           className="field"
           placeholder="comma-separated, e.g. lithium, cobalt, nickel"
         />
       </div>
       <div>
-        <label className="label">Capability tags</label>
+        <label className="label" htmlFor="capabilities">Capability tags</label>
         <input
-          name="capabilities"
+          id="capabilities" name="capabilities"
           defaultValue={org?.capabilities.join(", ") || ""}
           className="field"
           placeholder="comma-separated, e.g. refining, brine extraction"
@@ -87,9 +87,9 @@ export function OrgForm({
       </div>
 
       <div>
-        <label className="label">Notes</label>
+        <label className="label" htmlFor="notes">Notes</label>
         <textarea
-          name="notes"
+          id="notes" name="notes"
           rows={3}
           defaultValue={org?.notes || ""}
           className="field resize-y"

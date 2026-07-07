@@ -55,10 +55,10 @@ export function AttachmentsPanel({ spotBuyId, attachments }: { spotBuyId: number
               <button
                 onClick={() => start(async () => { await deleteAttachmentAction(a.id); router.refresh(); })}
                 disabled={pending}
-                className="shrink-0 text-ink-3 hover:text-danger"
-                aria-label="Delete"
+                className="grid h-9 w-9 shrink-0 place-items-center rounded-md text-ink-3 hover:bg-paper-2 hover:text-danger"
+                aria-label={`Delete ${a.filename}`}
               >
-                <Trash2 size={13} />
+                <Trash2 size={14} />
               </button>
             </li>
           ))}
@@ -67,7 +67,7 @@ export function AttachmentsPanel({ spotBuyId, attachments }: { spotBuyId: number
         <p className="mt-2 text-[12px] text-ink-3">Mill certs, commercial invoices, and quote PDFs live here.</p>
       )}
       <div className="mt-2.5 flex items-center gap-2">
-        <select value={kind} onChange={(e) => setKind(e.target.value)} className="field py-1 text-[12px]">
+        <select value={kind} onChange={(e) => setKind(e.target.value)} aria-label="Document type" className="field py-1 text-[12px]">
           {KINDS.map((k) => (
             <option key={k.value} value={k.value}>{k.label}</option>
           ))}
@@ -82,7 +82,7 @@ export function AttachmentsPanel({ spotBuyId, attachments }: { spotBuyId: number
           <Upload size={13} /> {pending ? "Uploading…" : "Upload"}
         </button>
       </div>
-      {error ? <p className="mt-2 text-[12px] text-danger">{error}</p> : null}
+      {error ? <p role="alert" className="mt-2 text-[12px] text-danger">{error}</p> : null}
     </Card>
   );
 }

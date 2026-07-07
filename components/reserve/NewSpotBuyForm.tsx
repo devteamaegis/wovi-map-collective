@@ -34,9 +34,9 @@ export function NewSpotBuyForm({
   return (
     <form action={createSpotBuyAction} className="space-y-5">
       <div>
-        <label className="label">What's needed</label>
+        <label className="label" htmlFor="title">What's needed</label>
         <input
-          name="title"
+          id="title" name="title"
           required
           className="field"
           placeholder="e.g. Hot-rolled steel coil — stamping line down"
@@ -45,8 +45,8 @@ export function NewSpotBuyForm({
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
-          <label className="label">Trigger</label>
-          <select name="trigger" className="field" defaultValue="shortage">
+          <label className="label" htmlFor="trigger">Trigger</label>
+          <select id="trigger" name="trigger" className="field" defaultValue="shortage">
             <option value="line_down">Line down</option>
             <option value="quality_rejection">Quality rejection</option>
             <option value="shortage">Shortage</option>
@@ -56,8 +56,8 @@ export function NewSpotBuyForm({
           </select>
         </div>
         <div>
-          <label className="label">Urgency</label>
-          <select name="urgency" className="field" defaultValue="high">
+          <label className="label" htmlFor="urgency">Urgency</label>
+          <select id="urgency" name="urgency" className="field" defaultValue="high">
             <option value="critical">Critical</option>
             <option value="high">High</option>
             <option value="med">Medium</option>
@@ -68,47 +68,47 @@ export function NewSpotBuyForm({
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
-          <label className="label">Material description</label>
+          <label className="label" htmlFor="material_desc">Material description</label>
           <input
-            name="material_desc"
+            id="material_desc" name="material_desc"
             className="field"
             placeholder="e.g. Hot-rolled steel coil, 3.0mm × 1250mm"
           />
         </div>
         <div>
-          <label className="label">Material number</label>
-          <input name="material_number" className="field" placeholder="e.g. STL-HR-3.0-1250" />
+          <label className="label" htmlFor="material_number">Material number</label>
+          <input id="material_number" name="material_number" className="field" placeholder="e.g. STL-HR-3.0-1250" />
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         <div>
-          <label className="label">Quantity</label>
-          <input name="quantity" type="number" step="any" className="field" placeholder="60000" />
+          <label className="label" htmlFor="quantity">Quantity</label>
+          <input id="quantity" name="quantity" type="number" step="any" className="field" placeholder="60000" />
         </div>
         <div>
-          <label className="label">UoM</label>
-          <input name="uom" className="field" placeholder="kg" />
+          <label className="label" htmlFor="uom">UoM</label>
+          <input id="uom" name="uom" className="field" placeholder="kg" />
         </div>
         <div className="col-span-2">
-          <label className="label">Need-by date</label>
-          <input name="required_by" type="date" className="field" />
+          <label className="label" htmlFor="required_by">Need-by date</label>
+          <input id="required_by" name="required_by" type="date" className="field" />
         </div>
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div>
-          <label className="label">Cost center</label>
-          <input name="cost_center" className="field" placeholder="CC-4021" />
+          <label className="label" htmlFor="cost_center">Cost center</label>
+          <input id="cost_center" name="cost_center" className="field" placeholder="CC-4021" />
         </div>
         <div>
-          <label className="label">Plant</label>
-          <input name="plant" className="field" placeholder="Voltaic Leipzig — Body Shop" />
+          <label className="label" htmlFor="plant">Plant</label>
+          <input id="plant" name="plant" className="field" placeholder="Voltaic Leipzig — Body Shop" />
         </div>
         <div>
-          <label className="label">Downtime cost / hour ($)</label>
+          <label className="label" htmlFor="downtime_cost_per_hour">Downtime cost / hour ($)</label>
           <input
-            name="downtime_cost_per_hour"
+            id="downtime_cost_per_hour" name="downtime_cost_per_hour"
             type="number"
             step="any"
             className="field"
@@ -119,9 +119,9 @@ export function NewSpotBuyForm({
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
-          <label className="label">Buyer organization</label>
+          <label className="label" htmlFor="buyer_org_id">Buyer organization</label>
           <select
-            name="buyer_org_id"
+            id="buyer_org_id" name="buyer_org_id"
             className="field"
             value={orgId}
             onChange={(e) => setOrgId(e.target.value)}
@@ -135,8 +135,8 @@ export function NewSpotBuyForm({
           </select>
         </div>
         <div>
-          <label className="label">Requesting buyer</label>
-          <select name="buyer_person_id" className="field" defaultValue="">
+          <label className="label" htmlFor="buyer_person_id">Requesting buyer</label>
+          <select id="buyer_person_id" name="buyer_person_id" className="field" defaultValue="">
             <option value="">Select person…</option>
             {relevantPeople.map((p) => (
               <option key={p.id} value={p.id}>
@@ -163,24 +163,24 @@ export function NewSpotBuyForm({
         {crossBorder ? (
           <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-4">
             <div>
-              <label className="label">Metal (Section 232)</label>
-              <select name="metal" className="field" defaultValue="steel">
+              <label className="label" htmlFor="metal">Metal (Section 232)</label>
+              <select id="metal" name="metal" className="field" defaultValue="steel">
                 <option value="steel">Steel</option>
                 <option value="aluminum">Aluminum</option>
                 <option value="none">None</option>
               </select>
             </div>
             <div>
-              <label className="label">Ship from</label>
-              <input name="ship_from_country" className="field" placeholder="Turkey" />
+              <label className="label" htmlFor="ship_from_country">Ship from</label>
+              <input id="ship_from_country" name="ship_from_country" className="field" placeholder="Turkey" />
             </div>
             <div>
-              <label className="label">Ship to</label>
-              <input name="ship_to_country" className="field" placeholder="Germany" />
+              <label className="label" htmlFor="ship_to_country">Ship to</label>
+              <input id="ship_to_country" name="ship_to_country" className="field" placeholder="Germany" />
             </div>
             <div>
-              <label className="label">Incoterm</label>
-              <input name="incoterm" className="field" placeholder="DAP" />
+              <label className="label" htmlFor="incoterm">Incoterm</label>
+              <input id="incoterm" name="incoterm" className="field" placeholder="DAP" />
             </div>
           </div>
         ) : (

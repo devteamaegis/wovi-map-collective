@@ -22,7 +22,12 @@ const mono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Wovi · Broker Console",
+  // Per-route pages export a short `title`; the template appends the brand so
+  // every tab/bookmark/history entry is distinct (WCAG 2.4.2).
+  title: {
+    template: "%s · Wovi",
+    default: "Wovi · Broker Console",
+  },
   description:
     "Relationship-intelligence layer for supply-chain sourcing — who can source what, from whom, through which trusted path.",
 };

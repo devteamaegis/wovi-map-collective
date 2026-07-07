@@ -26,8 +26,15 @@ export function UserMenu({ user }: { user: SessionUser }) {
     const onClick = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
     };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
     document.addEventListener("mousedown", onClick);
-    return () => document.removeEventListener("mousedown", onClick);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onClick);
+      document.removeEventListener("keydown", onKey);
+    };
   }, []);
 
   const initial = user.name.trim().charAt(0).toUpperCase() || "?";
@@ -36,6 +43,9 @@ export function UserMenu({ user }: { user: SessionUser }) {
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen((o) => !o)}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-label="Account menu"
         className="flex items-center gap-2 rounded-lg border border-rule bg-white px-2 py-1.5 hover:bg-paper-2"
       >
         <span className="grid h-6 w-6 place-items-center rounded-full bg-navy text-[11px] font-medium text-white">

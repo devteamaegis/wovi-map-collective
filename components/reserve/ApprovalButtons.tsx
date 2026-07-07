@@ -56,7 +56,7 @@ export function ApprovalButtons({
         </button>
       </div>
       {error ? (
-        <p className="mt-2 flex items-start gap-1.5 rounded-lg border border-[#e7d4b6] bg-[#f6ecdc] px-2.5 py-1.5 text-[12px] leading-snug text-[#8a5d21]">
+        <p role="alert" className="mt-2 flex items-start gap-1.5 rounded-lg border border-[#e7d4b6] bg-[#f6ecdc] px-2.5 py-1.5 text-[12px] leading-snug text-[#8a5d21]">
           <ShieldAlert size={13} className="mt-0.5 shrink-0" />
           {error}
         </p>

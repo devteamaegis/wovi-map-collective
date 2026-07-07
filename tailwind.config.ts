@@ -30,6 +30,8 @@ const config: Config = {
         },
         warn: "var(--warn)",
         good: "var(--good)",
+        danger: "var(--danger)", // resolves text-danger / hover:text-danger (previously undefined → no-op)
+        surface: "var(--surface)",
       },
       fontFamily: {
         serif: ["var(--font-newsreader)", "Georgia", "serif"],

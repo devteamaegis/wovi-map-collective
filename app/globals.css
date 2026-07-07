@@ -6,9 +6,13 @@
   --paper: #fbfcfd;
   --paper-2: #f1f4f7;
   --paper-3: #e9eef2;
+  --surface: #fff; /* card/button/field surface — the one value that had escaped the token set */
   --ink: #131a24;
   --ink-2: #3a4654;
-  --ink-3: #6b7886;
+  /* Darkened from #6b7886 so secondary text clears AA 4.5:1 on every paper tint
+     (was 4.39:1 on --paper, 4.09:1 on --paper-2 at 11–13px). Now ~5.7:1 on white,
+     ~5.5:1 on --paper, ~5.15:1 on --paper-2. */
+  --ink-3: #5c6875;
   --rule: #dde3e9;
   --navy: #12171f;
   --navy-2: #0e131a;
@@ -16,7 +20,9 @@
   --accent-2: #6e93b6;
   --accent-pale: #dce6ef;
   --warn: #c0843c;
+  --warn-text: #8a5d21; /* AA-compliant amber for text (var(--warn) is border/icon only) */
   --good: #3e7d6a;
+  --danger: #9b3f37; /* AA-compliant red for text: 6.6:1 on white */
 }
 
 * {
@@ -104,7 +110,7 @@ body {
   }
 
   .card {
-    background: #fff;
+    background: var(--surface);
     border: 1px solid var(--rule);
     border-radius: 0.875rem;
     box-shadow: 0 1px 2px rgba(19, 26, 36, 0.04);
@@ -125,7 +131,7 @@ body {
     padding: 0.5rem 0.85rem;
     border-radius: 0.6rem;
     border: 1px solid var(--rule);
-    background: #fff;
+    background: var(--surface);
     color: var(--ink);
     cursor: pointer;
     transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
@@ -133,6 +139,13 @@ body {
   }
   .btn:hover {
     background: var(--paper-2);
+  }
+  /* Explicit, consistent keyboard focus ring on every button/link-button —
+     matches the accent ring used on fields, and guarantees visibility
+     regardless of UA defaults (WCAG 2.4.7). */
+  .btn:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(74, 110, 146, 0.4);
   }
   .btn-primary {
     background: var(--accent);
@@ -159,17 +172,17 @@ body {
     filter: brightness(0.95);
   }
   .btn-warn {
-    background: #fff;
+    background: var(--surface);
     border-color: var(--warn);
-    color: var(--warn);
+    color: var(--warn-text); /* 5.7:1 on white; amber kept for the border/icon only */
   }
   .btn-warn:hover {
     background: #fbf3e9;
   }
   .btn-danger {
-    background: #fff;
-    border-color: #c45b52;
-    color: #c45b52;
+    background: var(--surface);
+    border-color: #c45b52; /* border stays vivid — 4.23:1 clears the 3:1 non-text bar */
+    color: var(--danger); /* 6.6:1 on white (was #c45b52 at 4.23:1) */
   }
   .btn-danger:hover {
     background: #fbeceb;
@@ -182,6 +195,15 @@ body {
     padding: 0.3rem 0.6rem;
     font-size: 12px;
   }
+  /* Comfortable touch targets on coarse pointers only — no desktop restyle. */
+  @media (pointer: coarse) {
+    .btn {
+      min-height: 44px;
+    }
+    .btn-sm {
+      min-height: 40px;
+    }
+  }
 
   /* Form fields */
   .field {
@@ -190,14 +212,16 @@ body {
     border-radius: 0.55rem;
     padding: 0.55rem 0.7rem;
     font-size: 14px;
-    background: #fff;
+    background: var(--surface);
     color: var(--ink);
     transition: border-color 0.12s ease, box-shadow 0.12s ease;
   }
-  .field:focus {
+  /* Clearly visible focus (the old --accent-pale ring was ~1.2:1 on white). */
+  .field:focus,
+  .field:focus-visible {
     outline: none;
-    border-color: var(--accent-2);
-    box-shadow: 0 0 0 3px var(--accent-pale);
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(74, 110, 146, 0.4);
   }
   .label {
     font-size: 12px;
@@ -302,5 +326,16 @@ body {
   }
   .ob-spotlight {
     transition: none !important;
+  }
+  /* Also neutralize the Tailwind utility transitions (drawer/scrim slides) and
+     JS-driven smooth scrolling the onboarding block alone didn't cover. */
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+  html {
+    scroll-behavior: auto !important;
   }
 }

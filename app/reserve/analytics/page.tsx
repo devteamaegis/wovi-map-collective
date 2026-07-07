@@ -7,6 +7,7 @@ import { cycleAnalytics, APQC_BENCHMARK_HOURS } from "@/lib/repos/analytics";
 import { fmtMoney } from "@/lib/reserve/logic";
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Analytics" };
 
 function hrs(h: number | null): string {
   if (h == null) return "—";
@@ -80,10 +81,10 @@ export default function AnalyticsPage() {
               <table className="w-full min-w-[520px] text-sm">
                 <thead>
                   <tr className="border-b border-rule text-left text-[11px] uppercase tracking-wide text-ink-3">
-                    <th className="py-2 pr-3 font-medium">Ref</th>
-                    <th className="py-2 pr-3 font-medium">Title</th>
-                    <th className="py-2 pr-3 font-medium">Resolution</th>
-                    <th className="py-2 pr-3 font-medium">Downtime avoided</th>
+                    <th scope="col" className="py-2 pr-3 font-medium">Ref</th>
+                    <th scope="col" className="py-2 pr-3 font-medium">Title</th>
+                    <th scope="col" className="py-2 pr-3 font-medium">Resolution</th>
+                    <th scope="col" className="py-2 pr-3 font-medium">Downtime avoided</th>
                   </tr>
                 </thead>
                 <tbody>

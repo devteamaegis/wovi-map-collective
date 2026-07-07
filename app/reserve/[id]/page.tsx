@@ -16,6 +16,12 @@ import { TRIGGER_LABEL } from "@/lib/reserve/logic";
 
 export const dynamic = "force-dynamic";
 
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const d = spotBuyDetail(Number(id));
+  return { title: d ? `${d.spotBuy.ref} — ${d.spotBuy.title}` : "Spot buy" };
+}
+
 export default async function SpotBuyPage({
   params,
 }: {

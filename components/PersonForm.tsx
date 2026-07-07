@@ -20,9 +20,9 @@ export function PersonForm({
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div>
-          <label className="label">Name</label>
+          <label className="label" htmlFor="name">Name</label>
           <input
-            name="name"
+            id="name" name="name"
             required
             defaultValue={person?.name}
             className="field"
@@ -30,9 +30,9 @@ export function PersonForm({
           />
         </div>
         <div>
-          <label className="label">Title</label>
+          <label className="label" htmlFor="title">Title</label>
           <input
-            name="title"
+            id="title" name="title"
             defaultValue={person?.title || ""}
             className="field"
             placeholder="e.g. Commercial Director"
@@ -41,9 +41,9 @@ export function PersonForm({
       </div>
 
       <div>
-        <label className="label">Organization</label>
+        <label className="label" htmlFor="org_id">Organization</label>
         <select
-          name="org_id"
+          id="org_id" name="org_id"
           className="field"
           defaultValue={person?.org_id != null ? String(person.org_id) : ""}
         >
@@ -58,36 +58,36 @@ export function PersonForm({
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div>
-          <label className="label">WhatsApp</label>
+          <label className="label" htmlFor="whatsapp">WhatsApp</label>
           <input
-            name="whatsapp"
+            id="whatsapp" name="whatsapp"
             defaultValue={person?.whatsapp || ""}
             className="field"
             placeholder="+1 …"
           />
         </div>
         <div>
-          <label className="label">WeChat</label>
+          <label className="label" htmlFor="wechat">WeChat</label>
           <input
-            name="wechat"
+            id="wechat" name="wechat"
             defaultValue={person?.wechat || ""}
             className="field"
             placeholder="wechat id"
           />
         </div>
         <div>
-          <label className="label">Phone</label>
+          <label className="label" htmlFor="phone">Phone</label>
           <input
-            name="phone"
+            id="phone" name="phone"
             defaultValue={person?.phone || ""}
             className="field"
             placeholder="+1 …"
           />
         </div>
         <div>
-          <label className="label">Email</label>
+          <label className="label" htmlFor="email">Email</label>
           <input
-            name="email"
+            id="email" name="email"
             type="email"
             defaultValue={person?.email || ""}
             className="field"
@@ -97,9 +97,9 @@ export function PersonForm({
       </div>
 
       <div>
-        <label className="label">Notes</label>
+        <label className="label" htmlFor="notes">Notes</label>
         <textarea
-          name="notes"
+          id="notes" name="notes"
           rows={3}
           defaultValue={person?.notes || ""}
           className="field resize-y"

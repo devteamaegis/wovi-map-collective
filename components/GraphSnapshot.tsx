@@ -1,22 +1,15 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import type { GraphData, GraphNode } from "@/lib/repos/graph";
+import { NODE_COLOR } from "@/lib/graph-style";
 
 const ForceGraph2D = dynamic(() => import("react-force-graph-2d"), {
   ssr: false,
 });
-
-const NODE_COLOR: Record<string, string> = {
-  buyer: "#6e93b6",
-  supplier: "#74b08f",
-  broker: "#b297cf",
-  facility: "#c9b487",
-  person: "#9fb0c0",
-};
 
 function radiusFor(n: GraphNode): number {
   const base = n.type === "org" ? 3.4 : 2.2;
@@ -28,11 +21,20 @@ export function GraphSnapshot({ data }: { data: GraphData }) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const fgRef = useRef<any>(null);
   const [size, setSize] = useState({ w: 600, h: 320 });
+  const reduceMotion = useMemo(
+    () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+    []
+  );
 
-  const graph = {
-    nodes: data.nodes.map((n) => ({ ...n, id: n.key })),
-    links: data.links.map((l) => ({ ...l })),
-  };
+  // Build graphData ONCE per data change — an inline object would restart the
+  // d3 force simulation (re-layout) on every ResizeObserver-driven render.
+  const graph = useMemo(
+    () => ({
+      nodes: data.nodes.map((n) => ({ ...n, id: n.key })),
+      links: data.links.map((l) => ({ ...l })),
+    }),
+    [data]
+  );
 
   useEffect(() => {
     const el = wrapRef.current;
@@ -71,7 +73,7 @@ export function GraphSnapshot({ data }: { data: GraphData }) {
         }
         linkWidth={(l: any) => 0.3 + (l.confidence / 100) * 1.6}
         linkDirectionalParticles={(l: any) =>
-          l.kind === "brokered_intro" || l.kind === "supplies" ? 2 : 0
+          reduceMotion ? 0 : l.kind === "brokered_intro" || l.kind === "supplies" ? 2 : 0
         }
         linkDirectionalParticleWidth={1.4}
         linkDirectionalParticleColor={() => "rgba(220,232,247,0.9)"}

@@ -68,12 +68,16 @@ export function WelcomeOverlay({
     return () => document.removeEventListener("keydown", onKey);
   }, [isLast, next, back, onExit]);
 
-  // Lock body scroll while open.
+  // Lock body scroll, move focus into the dialog on open, and restore it on close
+  // (the Tab handler below only traps once focus is already inside).
   useEffect(() => {
-    const prev = document.body.style.overflow;
+    const prevFocus = document.activeElement as HTMLElement | null;
+    const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+    containerRef.current?.querySelector<HTMLElement>("button, a[href]")?.focus();
     return () => {
-      document.body.style.overflow = prev;
+      document.body.style.overflow = prevOverflow;
+      prevFocus?.focus();
     };
   }, []);
 
@@ -144,19 +148,24 @@ export function WelcomeOverlay({
         <div className="mx-auto flex max-w-5xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           {/* progress */}
           <div className="flex items-center gap-3">
-            <div className="flex gap-1.5">
+            <div className="flex gap-0.5">
               {WELCOME_STEPS.map((_, k) => (
                 <button
                   key={k}
                   aria-label={`Go to step ${k + 1}`}
+                  aria-current={k === i}
                   onClick={() => setI(k)}
-                  className={`h-1 rounded-full transition-all ${
-                    k === i ? "w-7 bg-accent-2" : "w-3 bg-white/20 hover:bg-white/35"
-                  }`}
-                />
+                  className="group flex h-6 items-center px-0.5" /* 24px hit area */
+                >
+                  <span
+                    className={`block h-1 rounded-full transition-all ${
+                      k === i ? "w-7 bg-accent-2" : "w-3 bg-white/20 group-hover:bg-white/35"
+                    }`}
+                  />
+                </button>
               ))}
             </div>
-            <span className="mono text-[11px] text-white/40">
+            <span className="mono text-[11px] text-white/55">
               {String(i + 1).padStart(2, "0")} / {String(total).padStart(2, "0")}
             </span>
           </div>
@@ -176,7 +185,7 @@ export function WelcomeOverlay({
               <>
                 <button
                   onClick={() => onExit("enter")}
-                  className="rounded-lg px-2 py-2 text-[13px] text-white/45 transition-colors hover:text-white/80"
+                  className="rounded-lg px-2 py-2 text-[13px] text-white/60 transition-colors hover:text-white/90"
                 >
                   Skip — I&apos;ll explore
                 </button>

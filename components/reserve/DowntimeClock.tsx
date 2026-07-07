@@ -37,8 +37,10 @@ export function DowntimeClock({
   const elapsed = `${h}h ${String(m).padStart(2, "0")}m ${String(s).padStart(2, "0")}s`;
 
   if (compact) {
+    // A live clock's server vs. client tick will differ by ~1s; suppress the
+    // (benign) hydration warning rather than force a 0→real flash.
     return (
-      <span className="mono tabular-nums text-[12px] text-ink-2">
+      <span suppressHydrationWarning className="mono tabular-nums text-[12px] text-ink-2">
         {elapsed}
         {costPerHour > 0 ? (
           <span className="ml-2 text-danger">{fmtMoney(exposure)}</span>
@@ -54,14 +56,14 @@ export function DowntimeClock({
           <div className="mono text-[10px] uppercase tracking-[0.16em] text-[#9b3f37]">
             {closedAt ? "Time to resolution" : "Elapsed — line exposure"}
           </div>
-          <div className="serif mt-1 text-2xl tabular-nums text-ink">{elapsed}</div>
+          <div suppressHydrationWarning className="serif mt-1 text-2xl tabular-nums text-ink">{elapsed}</div>
         </div>
         {costPerHour > 0 ? (
           <div className="text-right">
             <div className="mono text-[10px] uppercase tracking-[0.16em] text-[#9b3f37]">
               Downtime exposure
             </div>
-            <div className="serif mt-1 text-2xl tabular-nums text-[#9b3f37]">
+            <div suppressHydrationWarning className="serif mt-1 text-2xl tabular-nums text-[#9b3f37]">
               {fmtMoney(Math.round(exposure))}
             </div>
             <div className="text-[11px] text-ink-3">

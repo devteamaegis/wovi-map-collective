@@ -20,7 +20,14 @@ export function ConfidenceBar({
 }) {
   const v = Math.max(0, Math.min(100, Math.round(value)));
   return (
-    <div className={`flex items-center gap-2 ${className}`}>
+    <div
+      className={`flex items-center gap-2 ${className}`}
+      role="progressbar"
+      aria-valuenow={v}
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-label={`Confidence ${v} of 100`}
+    >
       <div
         className={`${width} h-1.5 rounded-full bg-paper-3 overflow-hidden`}
         aria-hidden
@@ -31,7 +38,7 @@ export function ConfidenceBar({
         />
       </div>
       {showValue ? (
-        <span className="mono text-[11px] text-ink-2 tabular-nums w-7 text-right">
+        <span aria-hidden className="mono text-[11px] text-ink-2 tabular-nums w-7 text-right">
           {v}
         </span>
       ) : null}

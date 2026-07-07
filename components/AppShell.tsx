@@ -21,9 +21,16 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <OnboardingProvider>
+      {/* Skip link — first tab stop; lets keyboard users bypass the nav (WCAG 2.4.1) */}
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-[80] focus:rounded-md focus:bg-navy focus:px-3 focus:py-2 focus:text-sm focus:text-white"
+      >
+        Skip to content
+      </a>
       <div className="flex min-h-screen">
-        {/* Sidebar (desktop) */}
-        <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col bg-navy text-white lg:flex">
+        {/* Sidebar (desktop) — scrollable so nav + footer stay reachable when tall / zoomed */}
+        <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col overflow-y-auto bg-navy text-white lg:flex">
           <div className="relative px-5 pt-6 pb-5">
             <NetworkMotif className="pointer-events-none absolute -right-6 top-2 w-40 opacity-30" />
             <Link href="/" className="relative inline-flex flex-col">
@@ -53,7 +60,9 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
         {/* Main column */}
         <div className="flex min-w-0 flex-1 flex-col">
           <TopBar user={sessionUser} />
-          <main className="min-w-0 flex-1">{children}</main>
+          <main id="main" tabIndex={-1} className="min-w-0 flex-1 focus:outline-none">
+            {children}
+          </main>
         </div>
       </div>
     </OnboardingProvider>

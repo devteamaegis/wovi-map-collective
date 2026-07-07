@@ -44,8 +44,8 @@ export function LinesEditor({
                 {l.material_number ? <span className="text-ink-3"> · {l.material_number}</span> : null}
               </span>
               {editable ? (
-                <button onClick={() => run(() => deleteLineAction(l.id))} disabled={pending} className="text-ink-3 hover:text-danger" aria-label="Remove line">
-                  <Trash2 size={13} />
+                <button onClick={() => run(() => deleteLineAction(l.id))} disabled={pending} className="grid h-9 w-9 shrink-0 place-items-center rounded-md text-ink-3 hover:bg-paper-2 hover:text-danger" aria-label={`Remove line ${l.material_desc}`}>
+                  <Trash2 size={14} />
                 </button>
               ) : null}
             </li>
@@ -54,12 +54,12 @@ export function LinesEditor({
       ) : null}
       {editable ? (
         <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-6">
-          <input value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="Material" className="field py-1 text-[12px] sm:col-span-2" />
-          <input value={mn} onChange={(e) => setMn(e.target.value)} placeholder="Part #" className="field py-1 text-[12px]" />
-          <input value={qty} onChange={(e) => setQty(e.target.value)} type="number" placeholder="Qty" className="field py-1 text-[12px]" />
-          <input value={price} onChange={(e) => setPrice(e.target.value)} type="number" placeholder="Unit $" className="field py-1 text-[12px]" />
+          <input value={desc} onChange={(e) => setDesc(e.target.value)} aria-label="Material" placeholder="Material" className="field py-1 text-[12px] sm:col-span-2" />
+          <input value={mn} onChange={(e) => setMn(e.target.value)} aria-label="Part number" placeholder="Part #" className="field py-1 text-[12px]" />
+          <input value={qty} onChange={(e) => setQty(e.target.value)} type="number" aria-label="Quantity" placeholder="Qty" className="field py-1 text-[12px]" />
+          <input value={price} onChange={(e) => setPrice(e.target.value)} type="number" aria-label="Unit price" placeholder="Unit $" className="field py-1 text-[12px]" />
           <div className="flex gap-1">
-            <input value={uom} onChange={(e) => setUom(e.target.value)} placeholder="UoM" className="field py-1 text-[12px] w-full" />
+            <input value={uom} onChange={(e) => setUom(e.target.value)} aria-label="Unit of measure" placeholder="UoM" className="field py-1 text-[12px] w-full" />
             <button
               onClick={() => run(async () => { if (!desc.trim()) return; await addLineAction(spotBuyId, { material_desc: desc, material_number: mn || null, quantity: Number(qty) || 0, uom: uom || null, unit_price: Number(price) || 0 }); setDesc(""); setMn(""); setQty(""); setUom(""); setPrice(""); })}
               disabled={pending || !desc.trim()}

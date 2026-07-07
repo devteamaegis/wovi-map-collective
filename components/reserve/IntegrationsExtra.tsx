@@ -96,13 +96,13 @@ export function IntegrationsExtra({
           </ul>
         ) : null}
         <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-6">
-          <input value={cLabel} onChange={(e) => setCLabel(e.target.value)} placeholder="Label" className="field sm:col-span-2" />
-          <select value={cType} onChange={(e) => setCType(e.target.value as any)} className="field">
+          <input value={cLabel} onChange={(e) => setCLabel(e.target.value)} aria-label="Channel label" placeholder="Label" className="field sm:col-span-2" />
+          <select value={cType} onChange={(e) => setCType(e.target.value as any)} aria-label="Channel type" className="field">
             <option value="teams">Teams</option>
             <option value="slack">Slack</option>
             <option value="webhook">Webhook</option>
           </select>
-          <input value={cTarget} onChange={(e) => setCTarget(e.target.value)} placeholder="Webhook URL" className="field sm:col-span-2" />
+          <input value={cTarget} onChange={(e) => setCTarget(e.target.value)} aria-label="Webhook URL" placeholder="Webhook URL" className="field sm:col-span-2" />
           <button
             onClick={() => run(async () => { await addChannelAction({ label: cLabel || cType, channel: cType, target: cTarget, events: [] }); setCLabel(""); setCTarget(""); })}
             disabled={pending || !cTarget.trim()}

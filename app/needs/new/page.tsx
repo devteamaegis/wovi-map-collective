@@ -5,6 +5,7 @@ import { listOrgs } from "@/lib/repos/orgs";
 import { listPeople } from "@/lib/repos/people";
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "New need" };
 
 export default function NewNeedPage() {
   const orgs = listOrgs().map((o) => ({ id: o.id, name: o.name, kind: o.kind }));

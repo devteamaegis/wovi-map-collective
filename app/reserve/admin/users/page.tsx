@@ -6,6 +6,7 @@ import { listPeople } from "@/lib/repos/people";
 import { getDb } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Users & roles" };
 
 export default async function UsersAdminPage() {
   const me = await currentUser();

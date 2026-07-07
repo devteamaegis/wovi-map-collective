@@ -74,7 +74,7 @@ export default function DashboardPage() {
                   0{i + 1}
                 </div>
                 <div className="serif mt-1 text-sm text-white/90">{a}</div>
-                <div className="text-[11px] text-white/45">{b}</div>
+                <div className="text-[11px] text-white/65">{b}</div>
               </div>
             ))}
           </div>
@@ -103,7 +103,7 @@ export default function DashboardPage() {
         {/* Needs that need you */}
         <div className="lg:col-span-2">
           <div className="mb-3 flex items-center justify-between">
-            <Eyebrow>Needs that need you</Eyebrow>
+            <Eyebrow as="h2">Needs that need you</Eyebrow>
             <Link href="/needs" className="link-accent text-[13px]">
               All needs →
             </Link>
@@ -160,7 +160,7 @@ export default function DashboardPage() {
 
           {/* Recently strengthened */}
           <div className="mb-3 mt-8 flex items-center gap-2">
-            <Eyebrow>Recently strengthened</Eyebrow>
+            <Eyebrow as="h2">Recently strengthened</Eyebrow>
           </div>
           {strengthened.length === 0 ? (
             <Card className="px-4 py-4 text-sm text-ink-3">
@@ -198,7 +198,7 @@ export default function DashboardPage() {
         {/* Awaiting consent */}
         <div>
           <div className="mb-3 flex items-center justify-between">
-            <Eyebrow>Awaiting consent</Eyebrow>
+            <Eyebrow as="h2">Awaiting consent</Eyebrow>
             <Link href="/consent" className="link-accent text-[13px]">
               Consent center →
             </Link>
@@ -215,7 +215,7 @@ export default function DashboardPage() {
             <div className="space-y-2.5">
               {pending.map((p) => (
                 <Card key={p.waiting_consent_id} className="px-4 py-3.5">
-                  <p className="text-[11px] uppercase tracking-wide text-warn">
+                  <p className="text-[11px] uppercase tracking-wide text-[#8a5d21]">
                     {p.granted_side} granted · {p.waiting_side} pending
                   </p>
                   <Link
@@ -247,7 +247,7 @@ export default function DashboardPage() {
       {/* Graph snapshot */}
       <div className="mt-9">
         <div className="mb-3 flex items-center justify-between">
-          <Eyebrow>03 The relationship graph</Eyebrow>
+          <Eyebrow as="h2">03 The relationship graph</Eyebrow>
           <Link href="/graph" className="link-accent text-[13px]">
             Open full graph →
           </Link>

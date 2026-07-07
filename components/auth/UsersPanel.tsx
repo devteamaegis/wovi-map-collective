@@ -86,6 +86,7 @@ export function UsersPanel({
                       disabled={pending || u.id === currentUserId}
                       onChange={(e) => run(() => setRoleAction(u.id, e.target.value as Role))}
                       className="field py-1 text-[13px]"
+                      aria-label={`Role for ${u.name}`}
                       title={u.id === currentUserId ? "You cannot change your own role" : undefined}
                     >
                       {ROLES.map((r) => (
@@ -101,6 +102,7 @@ export function UsersPanel({
                         run(() => linkPersonAction(u.id, e.target.value ? Number(e.target.value) : null))
                       }
                       className="field py-1 text-[13px]"
+                      aria-label={`Directory person for ${u.name}`}
                     >
                       <option value="">— none —</option>
                       {people.map((p) => (
@@ -137,15 +139,15 @@ export function UsersPanel({
           action={(fd) => run(() => createUserAction(fd))}
           className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-6"
         >
-          <input name="name" required placeholder="Name" className="field sm:col-span-2" />
-          <input name="email" required type="email" placeholder="Email" className="field sm:col-span-2" />
-          <input name="password" type="password" placeholder="Temp password" className="field sm:col-span-1" />
-          <select name="role" defaultValue="buyer" className="field sm:col-span-1">
+          <input name="name" required aria-label="New user name" placeholder="Name" className="field sm:col-span-2" />
+          <input name="email" required type="email" aria-label="New user email" placeholder="Email" className="field sm:col-span-2" />
+          <input name="password" type="password" aria-label="Temporary password" placeholder="Temp password" className="field sm:col-span-1" />
+          <select name="role" defaultValue="buyer" aria-label="New user role" className="field sm:col-span-1">
             {ROLES.map((r) => (
               <option key={r} value={r}>{r}</option>
             ))}
           </select>
-          <select name="person_id" defaultValue="" className="field sm:col-span-2">
+          <select name="person_id" defaultValue="" aria-label="Link directory person" className="field sm:col-span-2">
             <option value="">Link directory person (optional)…</option>
             {people.map((p) => (
               <option key={p.id} value={p.id}>{p.name}</option>

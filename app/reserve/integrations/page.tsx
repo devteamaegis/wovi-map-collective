@@ -8,6 +8,7 @@ import { listPeople } from "@/lib/repos/people";
 import { getDb } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Integrations" };
 
 export default function IntegrationsPage() {
   const db = getDb();

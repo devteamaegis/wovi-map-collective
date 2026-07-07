@@ -72,10 +72,10 @@ const GROUPS: { heading: string; items: NavItem[] }[] = [
 export function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
   return (
-    <div className="space-y-5">
+    <nav aria-label="Primary" className="space-y-5">
       {GROUPS.map((group) => (
-        <nav key={group.heading} className="flex flex-col gap-0.5">
-          <span className="mono px-3 pb-1.5 text-[10px] uppercase tracking-[0.16em] text-white/30">
+        <div key={group.heading} role="group" aria-label={group.heading} className="flex flex-col gap-0.5">
+          <span className="mono px-3 pb-1.5 text-[10px] uppercase tracking-[0.16em] text-white/55">
             {group.heading}
           </span>
           {group.items.map((item) => {
@@ -102,8 +102,8 @@ export function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
               </Link>
             );
           })}
-        </nav>
+        </div>
       ))}
-    </div>
+    </nav>
   );
 }

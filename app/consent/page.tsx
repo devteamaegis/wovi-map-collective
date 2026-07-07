@@ -14,6 +14,7 @@ import type { ConsentContext } from "@/lib/repos/consents";
 import { timeAgo } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Consent center" };
 
 const GROUPS: { key: string; label: string }[] = [
   { key: "pending", label: "Pending" },
@@ -102,7 +103,7 @@ export default function ConsentPage() {
                 <div className="flex items-start gap-2.5">
                   <AlertCircle size={16} className="mt-0.5 shrink-0 text-warn" />
                   <div className="min-w-0 flex-1">
-                    <p className="text-[11px] uppercase tracking-wide text-warn">
+                    <p className="text-[11px] uppercase tracking-wide text-[#8a5d21]">
                       {p.granted_side} granted · {p.waiting_side} pending
                     </p>
                     <Link

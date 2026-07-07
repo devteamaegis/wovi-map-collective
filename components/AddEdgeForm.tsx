@@ -74,8 +74,9 @@ export function AddEdgeForm({
   return (
     <form onSubmit={submit} className="space-y-3">
       <div>
-        <label className="label">Connect to</label>
+        <label className="label" htmlFor="ae-target">Connect to</label>
         <select
+          id="ae-target"
           className="field"
           value={targetKey}
           onChange={(e) => setTargetKey(e.target.value)}
@@ -91,8 +92,9 @@ export function AddEdgeForm({
       </div>
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="label">Relationship</label>
+          <label className="label" htmlFor="ae-kind">Relationship</label>
           <select
+            id="ae-kind"
             className="field"
             value={kind}
             onChange={(e) => setKind(e.target.value as EdgeKind)}
@@ -105,8 +107,9 @@ export function AddEdgeForm({
           </select>
         </div>
         <div>
-          <label className="label">Consent</label>
+          <label className="label" htmlFor="ae-consent">Consent</label>
           <select
+            id="ae-consent"
             className="field"
             value={consent}
             onChange={(e) => setConsent(e.target.value as ConsentStatus)}
@@ -120,8 +123,9 @@ export function AddEdgeForm({
         </div>
       </div>
       <div>
-        <label className="label">Provenance</label>
+        <label className="label" htmlFor="ae-provenance">Provenance</label>
         <input
+          id="ae-provenance"
           className="field"
           value={provenance}
           onChange={(e) => setProvenance(e.target.value)}

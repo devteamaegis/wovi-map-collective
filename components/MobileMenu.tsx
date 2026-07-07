@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
@@ -14,6 +14,8 @@ import { TourButton } from "./onboarding/TourButton";
 export function MobileMenu() {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
+  const panelRef = useRef<HTMLElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
 
   // Close on route change.
   useEffect(() => {
@@ -35,11 +37,38 @@ export function MobileMenu() {
     };
   }, [open]);
 
+  // Move focus into the drawer on open, trap Tab, and restore focus on close.
+  useEffect(() => {
+    if (!open) return;
+    const items = panelRef.current?.querySelectorAll<HTMLElement>("a[href],button");
+    items?.[0]?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Tab" || !items || !items.length) return;
+      const first = items[0];
+      const last = items[items.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      triggerRef.current?.focus();
+    };
+  }, [open]);
+
   return (
     <>
       <button
+        ref={triggerRef}
         onClick={() => setOpen(true)}
         aria-label="Open menu"
+        aria-expanded={open}
+        aria-controls="mobile-nav-drawer"
         className="btn btn-ghost btn-sm -ml-1 shrink-0 lg:hidden"
       >
         <Menu size={18} />
@@ -54,12 +83,17 @@ export function MobileMenu() {
         aria-hidden
       />
 
-      {/* Drawer */}
+      {/* Drawer — inert when closed so its off-screen links leave the tab order */}
       <aside
+        ref={panelRef}
+        id="mobile-nav-drawer"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Navigation"
+        inert={!open}
         className={`fixed inset-y-0 left-0 z-50 flex w-[82vw] max-w-[320px] flex-col bg-navy text-white shadow-panel transition-transform duration-200 lg:hidden ${
           open ? "translate-x-0" : "-translate-x-full"
         }`}
-        aria-label="Navigation"
       >
         <div className="relative flex items-start justify-between px-5 pb-5 pt-6">
           <NetworkMotif className="pointer-events-none absolute -right-6 top-2 w-40 opacity-30" />

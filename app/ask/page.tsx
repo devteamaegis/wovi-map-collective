@@ -19,6 +19,7 @@ import type { NodeType, NeedKind } from "@/lib/types";
 import type { BrokerThisInput } from "@/app/actions";
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Ask the map" };
 
 export default async function AskPage({
   searchParams,

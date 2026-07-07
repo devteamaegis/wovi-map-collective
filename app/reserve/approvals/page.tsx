@@ -10,6 +10,7 @@ import { approvalsQueue } from "@/lib/repos/reserve";
 import { fmtMoney } from "@/lib/reserve/logic";
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Approvals" };
 
 export default function ApprovalsPage() {
   const queue = approvalsQueue();

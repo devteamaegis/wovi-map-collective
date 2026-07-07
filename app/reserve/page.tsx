@@ -18,6 +18,7 @@ import { fmtMoney } from "@/lib/reserve/logic";
 import type { SpotBuyStatus, Urgency, SpotBuyTrigger } from "@/lib/reserve/types";
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Spot buys" };
 
 export default async function ReservePage({
   searchParams,
@@ -77,7 +78,7 @@ export default async function ReservePage({
       </div>
 
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
-        <Eyebrow>Urgent-need queue</Eyebrow>
+        <Eyebrow as="h2">Urgent-need queue</Eyebrow>
         <Link href="/reserve/new" className="btn btn-primary btn-sm">
           <Plus size={14} /> New spot buy
         </Link>

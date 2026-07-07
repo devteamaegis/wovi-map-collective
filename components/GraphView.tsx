@@ -18,38 +18,15 @@ import {
 } from "./Badge";
 import { AddEdgeForm, NodeOption } from "./AddEdgeForm";
 import type { NodeDetail, EdgeDetail } from "@/lib/repos/detail";
+import { NODE_COLOR, LINK_RGB, linkConsentDash } from "@/lib/graph-style";
 
 const ForceGraph2D = dynamic(() => import("react-force-graph-2d"), {
   ssr: false,
 });
 
-// Node colours on the navy canvas, by org kind (people are lighter/smaller).
-const NODE_COLOR: Record<string, string> = {
-  buyer: "#6e93b6",
-  supplier: "#74b08f",
-  broker: "#b297cf",
-  facility: "#c9b487",
-  person: "#9fb0c0",
-};
-
-// Link colours by relationship kind (RGB for alpha blending).
-const LINK_RGB: Record<string, [number, number, number]> = {
-  knows: [150, 168, 188],
-  introduced_by: [110, 147, 182],
-  brokered_intro: [143, 176, 208],
-  sources_from: [74, 110, 146],
-  supplies: [116, 176, 143],
-};
-
 function radiusFor(n: GraphNode): number {
   const base = n.type === "org" ? 4 : 2.6;
   return base + Math.sqrt(n.degree) * (n.type === "org" ? 1.7 : 1.0);
-}
-
-function linkConsentDash(consent: string): number[] | null {
-  if (consent === "double_opt_in") return null; // solid
-  if (consent === "one_sided") return [5, 4]; // dashed
-  return [1, 4]; // faint dotted
 }
 
 interface Filters {
@@ -76,6 +53,12 @@ export function GraphView({ data }: { data: GraphData }) {
     consent: "all",
   });
   const [focusQuery, setFocusQuery] = useState("");
+  // Honor prefers-reduced-motion for the canvas particle animation (the CSS
+  // media block can't reach react-force-graph's rAF loop).
+  const reduceMotion = useMemo(
+    () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+    []
+  );
 
   const [selNode, setSelNode] = useState<{ type: string; id: number } | null>(
     null
@@ -184,18 +167,28 @@ export function GraphView({ data }: { data: GraphData }) {
     }
   }, [highlightId, graph]);
 
+  // Guards against out-of-order responses: a slow request for node A must not
+  // overwrite the panel after the user has already clicked node B.
+  const detailReq = useRef(0);
+
   const fetchNode = useCallback(async (type: string, id: number) => {
+    const my = ++detailReq.current;
     setLoadingDetail(true);
     setShowAddEdge(false);
     const res = await fetch(`/api/graph/node?type=${type}&id=${id}`);
-    setNodeDetail(res.ok ? await res.json() : null);
+    const d = res.ok ? await res.json() : null;
+    if (my !== detailReq.current) return;
+    setNodeDetail(d);
     setLoadingDetail(false);
   }, []);
 
   const fetchEdge = useCallback(async (id: number) => {
+    const my = ++detailReq.current;
     setLoadingDetail(true);
     const res = await fetch(`/api/graph/edge?id=${id}`);
-    setEdgeDetail(res.ok ? await res.json() : null);
+    const d = res.ok ? await res.json() : null;
+    if (my !== detailReq.current) return;
+    setEdgeDetail(d);
     setLoadingDetail(false);
   }, []);
 
@@ -274,10 +267,11 @@ export function GraphView({ data }: { data: GraphData }) {
                 <button
                   key={k}
                   onClick={() => toggleKind(k)}
+                  aria-pressed={filters.kinds.has(k)}
                   className={`rounded-md border px-2 py-1 text-[11px] capitalize transition-colors ${
                     filters.kinds.has(k)
                       ? "border-transparent text-navy"
-                      : "border-white/15 text-white/45"
+                      : "border-white/15 text-white/60"
                   }`}
                   style={
                     filters.kinds.has(k)
@@ -292,15 +286,16 @@ export function GraphView({ data }: { data: GraphData }) {
           </div>
 
           <div>
-            <label className="mb-1.5 block text-[12px] font-medium text-white/70">
+            <label htmlFor="gf-tag" className="mb-1.5 block text-[12px] font-medium text-white/70">
               Material / capability
             </label>
             <select
+              id="gf-tag"
               value={filters.tag}
               onChange={(e) =>
                 setFilters((f) => ({ ...f, tag: e.target.value }))
               }
-              className="w-full rounded-md border border-white/15 bg-white/5 px-2 py-1.5 text-[13px] text-white focus:outline-none"
+              className="w-full rounded-md border border-white/15 bg-white/5 px-2 py-1.5 text-[13px] text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#6e93b6]"
             >
               <option value="all" className="text-ink">
                 All tags
@@ -314,15 +309,16 @@ export function GraphView({ data }: { data: GraphData }) {
           </div>
 
           <div>
-            <label className="mb-1.5 block text-[12px] font-medium text-white/70">
+            <label htmlFor="gf-region" className="mb-1.5 block text-[12px] font-medium text-white/70">
               Country / region
             </label>
             <select
+              id="gf-region"
               value={filters.region}
               onChange={(e) =>
                 setFilters((f) => ({ ...f, region: e.target.value }))
               }
-              className="w-full rounded-md border border-white/15 bg-white/5 px-2 py-1.5 text-[13px] text-white focus:outline-none"
+              className="w-full rounded-md border border-white/15 bg-white/5 px-2 py-1.5 text-[13px] text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#6e93b6]"
             >
               <option value="all" className="text-ink">
                 All regions
@@ -336,15 +332,16 @@ export function GraphView({ data }: { data: GraphData }) {
           </div>
 
           <div>
-            <label className="mb-1.5 block text-[12px] font-medium text-white/70">
+            <label htmlFor="gf-consent" className="mb-1.5 block text-[12px] font-medium text-white/70">
               Consent status
             </label>
             <select
+              id="gf-consent"
               value={filters.consent}
               onChange={(e) =>
                 setFilters((f) => ({ ...f, consent: e.target.value }))
               }
-              className="w-full rounded-md border border-white/15 bg-white/5 px-2 py-1.5 text-[13px] text-white focus:outline-none"
+              className="w-full rounded-md border border-white/15 bg-white/5 px-2 py-1.5 text-[13px] text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#6e93b6]"
             >
               <option value="all" className="text-ink">
                 Any consent
@@ -362,10 +359,11 @@ export function GraphView({ data }: { data: GraphData }) {
           </div>
 
           <div className="col-span-2">
-            <label className="mb-1.5 block text-[12px] font-medium text-white/70">
+            <label htmlFor="gf-minconf" className="mb-1.5 block text-[12px] font-medium text-white/70">
               Min confidence: {filters.minConfidence}
             </label>
             <input
+              id="gf-minconf"
               type="range"
               min={0}
               max={100}
@@ -381,7 +379,7 @@ export function GraphView({ data }: { data: GraphData }) {
           </div>
 
           <div className="col-span-2">
-            <label className="mb-1.5 block text-[12px] font-medium text-white/70">
+            <label htmlFor="gf-focus" className="mb-1.5 block text-[12px] font-medium text-white/70">
               Search to focus
             </label>
             <div className="flex gap-1.5">
@@ -390,7 +388,8 @@ export function GraphView({ data }: { data: GraphData }) {
                 onChange={(e) => setFocusQuery(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && doFocus()}
                 placeholder="Node name…"
-                className="w-full rounded-md border border-white/15 bg-white/5 px-2 py-1.5 text-[13px] text-white placeholder:text-white/30 focus:outline-none"
+                id="gf-focus"
+                className="w-full rounded-md border border-white/15 bg-white/5 px-2 py-1.5 text-[13px] text-white placeholder:text-white/45 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#6e93b6]"
               />
               <button
                 onClick={doFocus}
@@ -426,7 +425,7 @@ export function GraphView({ data }: { data: GraphData }) {
             </button>
           </div>
 
-          <p className="col-span-2 text-[11px] text-white/35">
+          <p className="col-span-2 text-[11px] text-white/60">
             {graph.nodes.length} nodes · {graph.links.length} edges shown
           </p>
         </div>
@@ -454,8 +453,41 @@ export function GraphView({ data }: { data: GraphData }) {
       <div
         ref={wrapRef}
         data-tour="graph-canvas"
+        role="img"
+        aria-label={`Relationship graph — ${graph.nodes.length} nodes and ${graph.links.length} edges. A keyboard-navigable list of the same nodes and edges follows.`}
         className="relative min-w-0 flex-1 touch-none bg-navy"
       >
+        {/* Non-visual, keyboard-reachable equivalent of the canvas: the same
+            nodes and edges as buttons that open the detail panel. This is the
+            only path to the relationship data for keyboard / screen-reader
+            users (the <canvas> exposes nothing to the AT tree). */}
+        <ul className="sr-only">
+          <li>
+            {graph.nodes.length} nodes and {graph.links.length} edges. Activate a
+            node or edge to open its details.
+          </li>
+          {graph.nodes.map((n: any) => (
+            <li key={`n-${n.id}`}>
+              <button type="button" onClick={() => onNodeClick(n)}>
+                {n.label} — {n.nodeKind}, {n.degree} connection{n.degree === 1 ? "" : "s"}. Open details.
+              </button>
+            </li>
+          ))}
+          {graph.links.map((l: any) => {
+            const sId = typeof l.source === "object" ? l.source.id : l.source;
+            const tId = typeof l.target === "object" ? l.target.id : l.target;
+            const sLabel = graph.nodes.find((n: any) => n.id === sId)?.label ?? sId;
+            const tLabel = graph.nodes.find((n: any) => n.id === tId)?.label ?? tId;
+            return (
+              <li key={`e-${l.id}`}>
+                <button type="button" onClick={() => onLinkClick(l)}>
+                  {sLabel} {edgeKindBadge(l.kind).label} {tLabel}: confidence {l.confidence},{" "}
+                  {consentBadge(l.consent_status).label}. Open details.
+                </button>
+              </li>
+            );
+          })}
+        </ul>
         <ForceGraph2D
           ref={fgRef}
           width={size.w}
@@ -482,7 +514,7 @@ export function GraphView({ data }: { data: GraphData }) {
           linkWidth={(l: any) => 0.4 + (l.confidence / 100) * 2.4}
           linkLineDash={(l: any) => linkConsentDash(l.consent_status)}
           linkDirectionalParticles={(l: any) =>
-            l.kind === "brokered_intro" || l.kind === "supplies" ? 2 : 0
+            reduceMotion ? 0 : l.kind === "brokered_intro" || l.kind === "supplies" ? 2 : 0
           }
           linkDirectionalParticleWidth={1.7}
           linkDirectionalParticleColor={() => "rgba(220,232,247,0.9)"}
@@ -526,8 +558,9 @@ export function GraphView({ data }: { data: GraphData }) {
           }}
         />
 
-        {/* Legend */}
-        <div className="pointer-events-none absolute bottom-4 left-4 hidden rounded-lg border border-white/10 bg-[#0e131a]/90 px-3.5 py-3 text-[11px] text-white/70 backdrop-blur sm:block">
+        {/* Legend — kept (compact) on mobile too, since node color = kind and
+            line style = consent are otherwise an unexplained encoding there. */}
+        <div className="pointer-events-none absolute bottom-3 left-3 max-w-[88vw] rounded-lg border border-white/10 bg-[#0e131a]/90 px-3 py-2.5 text-[10px] text-white/70 backdrop-blur sm:bottom-4 sm:left-4 sm:px-3.5 sm:py-3 sm:text-[11px]">
           <div className="mb-1.5 flex flex-wrap gap-x-3 gap-y-1">
             {Object.entries(NODE_COLOR).map(([k, c]) => (
               <span key={k} className="inline-flex items-center gap-1 capitalize">

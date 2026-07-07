@@ -13,6 +13,7 @@ import type { NeedKind, NeedStatus, Priority } from "@/lib/types";
 import { timeAgo } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Needs" };
 
 export default async function NeedsPage({
   searchParams,

@@ -86,7 +86,7 @@ function Stage({
     <Card
       className={`overflow-hidden ${
         state === "active" ? "ring-1 ring-accent-2" : ""
-      } ${state === "upcoming" ? "opacity-60" : ""}`}
+      } ${state === "upcoming" ? "bg-paper-2/40" : ""}`}
     >
       <div className="flex items-center gap-2.5 border-b border-rule px-4 py-3 sm:px-5">
         <span
@@ -101,7 +101,7 @@ function Stage({
           {state === "done" ? <CheckCircle2 size={15} /> : n}
         </span>
         <Icon size={15} className="text-ink-3" />
-        <h3 className="font-medium text-ink">{title}</h3>
+        <h2 className="font-medium text-ink">{title}</h2>
         {state === "done" ? (
           <span className="ml-auto text-[11px] font-medium text-good">Done</span>
         ) : state === "active" ? (
@@ -555,12 +555,12 @@ function QuoteTable({ quotes, actor, onRun, pending }: any) {
       <table className="w-full min-w-[560px] border-collapse text-sm">
         <thead>
           <tr className="border-b border-rule text-left text-[11px] uppercase tracking-wide text-ink-3">
-            <th className="py-2 pr-3 font-medium">Supplier</th>
-            <th className="py-2 pr-3 font-medium">Unit</th>
-            <th className="py-2 pr-3 font-medium">Lead</th>
-            <th className="py-2 pr-3 font-medium">Freight</th>
-            <th className="py-2 pr-3 font-medium">Landed</th>
-            <th className="py-2 pr-3"></th>
+            <th scope="col" className="py-2 pr-3 font-medium">Supplier</th>
+            <th scope="col" className="py-2 pr-3 font-medium">Unit</th>
+            <th scope="col" className="py-2 pr-3 font-medium">Lead</th>
+            <th scope="col" className="py-2 pr-3 font-medium">Freight</th>
+            <th scope="col" className="py-2 pr-3 font-medium">Landed</th>
+            <th scope="col" className="py-2 pr-3"><span className="sr-only">Select</span></th>
           </tr>
         </thead>
         <tbody>
@@ -666,24 +666,27 @@ function RequisitionPanel({ req, actor, onRun, pending }: any) {
         <>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             <div>
-              <label className="label">Material number</label>
+              <label className="label" htmlFor="req-material">Material number</label>
               <input
+                id="req-material"
                 className="field"
                 value={material}
                 onChange={(e) => setMaterial(e.target.value)}
               />
             </div>
             <div>
-              <label className="label">Cost center</label>
+              <label className="label" htmlFor="req-cc">Cost center</label>
               <input
+                id="req-cc"
                 className="field"
                 value={cc}
                 onChange={(e) => setCc(e.target.value)}
               />
             </div>
             <div>
-              <label className="label">Need-by</label>
+              <label className="label" htmlFor="req-needby">Need-by</label>
               <input
+                id="req-needby"
                 type="date"
                 className="field"
                 value={needBy}

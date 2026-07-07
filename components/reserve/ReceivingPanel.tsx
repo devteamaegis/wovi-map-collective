@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { PackageCheck, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { Badge, type Tone } from "@/components/Badge";
 import { fmtMoney, MATCH_LABEL, type MatchStatus } from "@/lib/reserve/logic";
@@ -39,6 +39,13 @@ export function ReceivingPanel({
   const [invoiceNo, setInvoiceNo] = useState("");
   const [invoiceAmt, setInvoiceAmt] = useState<string>(String(poAmount || ""));
   const [partial, setPartial] = useState(false);
+
+  // After router.refresh() (this panel stays mounted), re-seed the qty field to
+  // what's still outstanding so a prior partial shipment doesn't leave a stale
+  // (too-large) prefill.
+  useEffect(() => {
+    setQty(remaining || orderedQty);
+  }, [remaining, orderedQty]);
 
   return (
     <div className="space-y-3">

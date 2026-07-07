@@ -16,7 +16,7 @@ export function ApproveConfirm({
 
   if (result?.ok) {
     return (
-      <div className="rounded-xl border border-[#c5ddd4] bg-[#e4efea] px-4 py-3 text-center text-[#2c5d4e]">
+      <div role="status" className="rounded-xl border border-[#c5ddd4] bg-[#e4efea] px-4 py-3 text-center text-[#2c5d4e]">
         <Check size={20} className="mx-auto mb-1" />
         <p className="text-sm font-medium">
           {result.ref} {result.decision === "approved" ? "approved" : "rejected"}.

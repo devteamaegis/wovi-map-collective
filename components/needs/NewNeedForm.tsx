@@ -34,9 +34,9 @@ export function NewNeedForm({
   return (
     <form action={createNeedAction} className="space-y-5">
       <div>
-        <label className="label">Title</label>
+        <label className="label" htmlFor="title">Title</label>
         <input
-          name="title"
+          id="title" name="title"
           required
           className="field"
           placeholder="e.g. Battery-grade lithium carbonate supplier for EU cell line"
@@ -45,8 +45,8 @@ export function NewNeedForm({
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div>
-          <label className="label">Kind</label>
-          <select name="kind" className="field" defaultValue="supplier">
+          <label className="label" htmlFor="kind">Kind</label>
+          <select id="kind" name="kind" className="field" defaultValue="supplier">
             <option value="supplier">Supplier</option>
             <option value="facility">Facility</option>
             <option value="part">Part</option>
@@ -55,8 +55,8 @@ export function NewNeedForm({
           </select>
         </div>
         <div>
-          <label className="label">Priority</label>
-          <select name="priority" className="field" defaultValue="med">
+          <label className="label" htmlFor="priority">Priority</label>
+          <select id="priority" name="priority" className="field" defaultValue="med">
             <option value="high">High</option>
             <option value="med">Medium</option>
             <option value="low">Low</option>
@@ -65,9 +65,9 @@ export function NewNeedForm({
       </div>
 
       <div>
-        <label className="label">Description</label>
+        <label className="label" htmlFor="description">Description</label>
         <textarea
-          name="description"
+          id="description" name="description"
           rows={3}
           className="field resize-y"
           placeholder="State the requirement plainly — volumes, specs, origin, traceability…"
@@ -76,16 +76,16 @@ export function NewNeedForm({
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div>
-          <label className="label">Material / capability tag</label>
+          <label className="label" htmlFor="material_tag">Material / capability tag</label>
           <input
-            name="material_tag"
+            id="material_tag" name="material_tag"
             className="field"
             placeholder="e.g. lithium, titanium, PCBA, connector, cocoa"
           />
         </div>
         <div>
-          <label className="label">Target region</label>
-          <select name="target_region" className="field" defaultValue="">
+          <label className="label" htmlFor="target_region">Target region</label>
+          <select id="target_region" name="target_region" className="field" defaultValue="">
             <option value="">Any region</option>
             <option value="North America">North America</option>
             <option value="Europe">Europe</option>
@@ -98,9 +98,9 @@ export function NewNeedForm({
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div>
-          <label className="label">Requester organization</label>
+          <label className="label" htmlFor="requester_org_id">Requester organization</label>
           <select
-            name="requester_org_id"
+            id="requester_org_id" name="requester_org_id"
             className="field"
             value={orgId}
             onChange={(e) => setOrgId(e.target.value)}
@@ -125,8 +125,8 @@ export function NewNeedForm({
           </select>
         </div>
         <div>
-          <label className="label">Requester person</label>
-          <select name="requester_person_id" className="field" defaultValue="">
+          <label className="label" htmlFor="requester_person_id">Requester person</label>
+          <select id="requester_person_id" name="requester_person_id" className="field" defaultValue="">
             <option value="">Select person…</option>
             {relevantPeople.map((p) => (
               <option key={p.id} value={p.id}>

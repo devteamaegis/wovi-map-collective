@@ -87,7 +87,8 @@ export function SpotlightTour({ onExit }: { onExit: () => void }) {
         targetRef.current = el;
         const r = el.getBoundingClientRect();
         if (r.top < 60 || r.bottom > window.innerHeight - 60) {
-          el.scrollIntoView({ block: "center", behavior: "smooth" });
+          const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+          el.scrollIntoView({ block: "center", behavior: reduce ? "auto" : "smooth" });
         }
         timer = setTimeout(() => {
           if (cancelled) return;
@@ -141,6 +142,29 @@ export function SpotlightTour({ onExit }: { onExit: () => void }) {
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, [isLast, next, back, onExit]);
+
+  // Move focus into the coach card each step and trap Tab so keyboard focus
+  // can't reach the dimmed background behind the modal tour.
+  useEffect(() => {
+    if (!ready) return;
+    cardRef.current?.querySelector<HTMLElement>("button")?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Tab") return;
+      const f = cardRef.current?.querySelectorAll<HTMLElement>("button");
+      if (!f || !f.length) return;
+      const first = f[0];
+      const last = f[f.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [ready, i]);
 
   // Position the coachmark card relative to the spotlight (or center it).
   useLayoutEffect(() => {

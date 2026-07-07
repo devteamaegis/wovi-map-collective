@@ -5,6 +5,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useState,
 } from "react";
 import { WelcomeOverlay, WelcomeExit } from "./WelcomeOverlay";
@@ -64,10 +65,11 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
     setPhase("idle");
   };
 
-  const value: OnboardingCtx = {
-    startWelcome: () => setPhase("welcome"),
-    startTour: () => setPhase("tour"),
-  };
+  // Stable identity so useOnboarding consumers (sidebar + mobile TourButton)
+  // don't re-render every time the provider does.
+  const startWelcome = useCallback(() => setPhase("welcome"), []);
+  const startTour = useCallback(() => setPhase("tour"), []);
+  const value = useMemo<OnboardingCtx>(() => ({ startWelcome, startTour }), [startWelcome, startTour]);
 
   return (
     <Ctx.Provider value={value}>

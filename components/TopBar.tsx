@@ -105,15 +105,26 @@ export function TopBar({ user }: { user?: SessionUser | null }) {
           onFocus={() => results.length && setOpen(true)}
           onKeyDown={onKeyDown}
           placeholder="Search orgs, people, needs…"
-          className="w-full rounded-lg border border-rule bg-white py-2 pl-9 pr-3 text-sm focus:border-accent-2 focus:outline-none focus:ring-2 focus:ring-accent-pale"
+          aria-label="Search orgs, people, and needs"
+          role="combobox"
+          aria-expanded={open && results.length > 0}
+          aria-controls="search-listbox"
+          aria-autocomplete="list"
+          aria-activedescendant={
+            open && results[active] ? `search-opt-${results[active].type}-${results[active].id}` : undefined
+          }
+          className="w-full rounded-lg border border-rule bg-white py-2 pl-9 pr-3 text-sm focus:border-accent-2 focus:outline-none focus:ring-2 focus:ring-[#4a6e92]/40"
         />
         {open && results.length > 0 ? (
-          <div className="absolute left-0 right-0 top-11 z-40 max-h-96 overflow-auto rounded-xl border border-rule bg-white py-1.5 shadow-panel">
+          <div id="search-listbox" role="listbox" aria-label="Search results" className="absolute left-0 right-0 top-11 z-40 max-h-96 overflow-auto rounded-xl border border-rule bg-white py-1.5 shadow-panel">
             {results.map((r, i) => {
               const Icon = ICON[r.type];
               return (
                 <button
                   key={`${r.type}-${r.id}`}
+                  id={`search-opt-${r.type}-${r.id}`}
+                  role="option"
+                  aria-selected={i === active}
                   onMouseEnter={() => setActive(i)}
                   onClick={() => go(r.href)}
                   className={`flex w-full items-center gap-3 px-3 py-2 text-left ${
@@ -135,7 +146,7 @@ export function TopBar({ user }: { user?: SessionUser | null }) {
           </div>
         ) : null}
         {open && q.trim() && results.length === 0 ? (
-          <div className="absolute left-0 right-0 top-11 z-40 rounded-xl border border-rule bg-white px-3 py-3 text-sm text-ink-3 shadow-panel">
+          <div role="status" className="absolute left-0 right-0 top-11 z-40 rounded-xl border border-rule bg-white px-3 py-3 text-sm text-ink-3 shadow-panel">
             No matches for “{q}”.
           </div>
         ) : null}

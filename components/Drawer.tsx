@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { X } from "lucide-react";
 
 export function Drawer({
@@ -18,6 +18,8 @@ export function Drawer({
   children: React.ReactNode;
   width?: string;
 }) {
+  const panelRef = useRef<HTMLElement>(null);
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -26,12 +28,43 @@ export function Drawer({
     return () => document.removeEventListener("keydown", onKey);
   }, [open, onClose]);
 
+  // While open: lock body scroll, move focus into the panel, trap Tab, and
+  // restore focus to the previously-focused element on close.
+  useEffect(() => {
+    if (!open) return;
+    const prevFocus = document.activeElement as HTMLElement | null;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const items = panelRef.current?.querySelectorAll<HTMLElement>(
+      'a[href],button,input,select,textarea,[tabindex]:not([tabindex="-1"])'
+    );
+    items?.[0]?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Tab" || !items || !items.length) return;
+      const first = items[0];
+      const last = items[items.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prevOverflow;
+      prevFocus?.focus();
+    };
+  }, [open]);
+
   return (
     <div
       className={`pointer-events-none fixed inset-0 z-50 ${
         open ? "" : "opacity-0"
       }`}
-      aria-hidden={!open}
+      inert={!open}
     >
       <div
         onClick={onClose}
@@ -40,6 +73,11 @@ export function Drawer({
         }`}
       />
       <aside
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label={title ? undefined : "Details"}
+        aria-labelledby={title ? "drawer-title" : undefined}
         className={`absolute right-0 top-0 h-full ${width} max-w-[92vw] transform overflow-y-auto border-l border-rule bg-white shadow-panel transition-transform duration-200 ${
           open ? "pointer-events-auto translate-x-0" : "translate-x-full"
         }`}
@@ -48,7 +86,7 @@ export function Drawer({
           <div className="min-w-0 space-y-1.5">
             {eyebrow ? <span className="eyebrow">{eyebrow}</span> : null}
             {title ? (
-              <h3 className="serif text-lg leading-tight text-ink">{title}</h3>
+              <h3 id="drawer-title" className="serif text-lg leading-tight text-ink">{title}</h3>
             ) : null}
           </div>
           <button

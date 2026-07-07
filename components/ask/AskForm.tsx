@@ -53,8 +53,9 @@ export function AskForm({
     <form onSubmit={submit} data-tour="ask-form" className="space-y-4">
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div>
-          <label className="label">From</label>
+          <label className="label" htmlFor="ask-from">From</label>
           <select
+            id="ask-from"
             className="field"
             value={from}
             onChange={(e) => setFrom(e.target.value)}
@@ -76,8 +77,9 @@ export function AskForm({
           </select>
         </div>
         <div>
-          <label className="label">Target region</label>
+          <label className="label" htmlFor="ask-region">Target region</label>
           <select
+            id="ask-region"
             className="field"
             value={region}
             onChange={(e) => setRegion(e.target.value)}
@@ -94,8 +96,9 @@ export function AskForm({
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div>
-          <label className="label">Capability / requirement</label>
+          <label className="label" htmlFor="ask-capability">Capability / requirement</label>
           <input
+            id="ask-capability"
             className="field"
             value={capability}
             onChange={(e) => setCapability(e.target.value)}
@@ -103,8 +106,9 @@ export function AskForm({
           />
         </div>
         <div>
-          <label className="label">Material tag (optional)</label>
+          <label className="label" htmlFor="ask-material">Material tag (optional)</label>
           <input
+            id="ask-material"
             className="field"
             value={material}
             onChange={(e) => setMaterial(e.target.value)}

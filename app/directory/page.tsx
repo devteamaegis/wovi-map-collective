@@ -15,6 +15,7 @@ import type { Organization, OrgKind } from "@/lib/types";
 import type { PersonWithOrg } from "@/lib/repos/people";
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Directory" };
 
 function Tabs({ tab }: { tab: string }) {
   const items = [

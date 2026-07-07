@@ -4,6 +4,7 @@ import { userCount, authEnabled } from "@/lib/auth";
 import { AuthCard } from "@/components/auth/AuthCard";
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Sign in" };
 
 export default async function LoginPage({
   searchParams,
