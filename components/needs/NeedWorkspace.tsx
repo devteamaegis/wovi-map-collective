@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowRight,
-  Sparkles,
+  Route,
   Radio,
   ShieldCheck,
   CheckCircle2,
@@ -190,7 +190,7 @@ export function NeedWorkspace({
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="flex items-center gap-2">
                     <span className="grid h-7 w-7 place-items-center rounded-full bg-accent-pale text-accent">
-                      <Sparkles size={14} />
+                      <Route size={14} />
                     </span>
                     <div>
                       <p className="font-medium text-ink">

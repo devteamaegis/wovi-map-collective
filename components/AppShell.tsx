@@ -4,7 +4,9 @@ import { TopBar } from "./TopBar";
 import { NetworkMotif } from "./NetworkMotif";
 import { OnboardingProvider } from "./onboarding/OnboardingProvider";
 import { TourButton } from "./onboarding/TourButton";
+import { PaywallBanner } from "./PaywallBanner";
 import { currentUser, authEnabled } from "@/lib/auth";
+import { isUnlocked, runsUsed } from "@/lib/paywall";
 
 export async function AppShell({ children }: { children: React.ReactNode }) {
   const user = await currentUser();
@@ -18,6 +20,10 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
   const sessionUser = user
     ? { name: user.name, email: user.email, role: user.role }
     : null;
+
+  // Show the demo free-run meter only to anonymous visitors who haven't unlocked.
+  const showPaywall = !user && !(await isUnlocked());
+  const runsSoFar = showPaywall ? await runsUsed() : 0;
 
   return (
     <OnboardingProvider>
@@ -61,6 +67,7 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
         <div className="flex min-w-0 flex-1 flex-col">
           <TopBar user={sessionUser} />
           <main id="main" tabIndex={-1} className="min-w-0 flex-1 focus:outline-none">
+            {showPaywall ? <PaywallBanner used={runsSoFar} /> : null}
             {children}
           </main>
         </div>

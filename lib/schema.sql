@@ -458,3 +458,13 @@ CREATE TABLE IF NOT EXISTS fx_rates (
   rate_to_usd REAL NOT NULL,     -- 1 unit of currency = rate_to_usd USD
   updated_at TEXT NOT NULL
 );
+
+-- ============ LEAD CAPTURE (demo paywall) ====================================
+CREATE TABLE IF NOT EXISTS leads (
+  id INTEGER PRIMARY KEY,
+  name TEXT,
+  email TEXT NOT NULL,
+  company TEXT,
+  source TEXT,                   -- which surface hit the wall (reserve/needs)
+  created_at TEXT NOT NULL
+);

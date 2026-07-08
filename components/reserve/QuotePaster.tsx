@@ -2,11 +2,11 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Sparkles, ClipboardPaste } from "lucide-react";
+import { PenLine, ClipboardPaste } from "lucide-react";
 import { parseQuoteAction, addQuoteAction } from "@/app/reserve/actions";
 
-// Paste a raw supplier quote (email/PDF text) → AI/heuristic parse → editable
-// fields → add to the comparison. "AI drafts, human confirms" (#3).
+// Paste a raw supplier quote (email/PDF text) → parse → editable fields → add to
+// the comparison. The tool drafts the fields; the buyer confirms.
 export function QuotePaster({
   spotBuyId,
   suppliers,
@@ -86,10 +86,10 @@ export function QuotePaster({
       />
       <div className="mt-2 flex items-center gap-2">
         <button onClick={parse} disabled={pending || !text.trim()} className="btn btn-sm">
-          <Sparkles size={13} /> {pending ? "Parsing…" : "Parse"}
+          <PenLine size={13} /> {pending ? "Parsing…" : "Parse"}
         </button>
         {source ? (
-          <span className="text-[11px] text-ink-3">Parsed by {source === "ai" ? "AI model" : "heuristic parser"} — review below.</span>
+          <span className="text-[11px] text-ink-3">Parsed {source === "ai" ? "automatically" : "by pattern match"} — review below.</span>
         ) : null}
         <button onClick={() => setOpen(false)} className="btn btn-ghost btn-sm ml-auto">Cancel</button>
       </div>

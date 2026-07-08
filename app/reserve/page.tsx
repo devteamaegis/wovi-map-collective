@@ -49,8 +49,8 @@ export default async function ReservePage({
           <p className="mt-4 max-w-xl text-[15px] leading-relaxed text-white/65">
             When supply breaks, Reserve runs the manual connective work — draft &
             broadcast the RFQ, normalize the quotes, pre-fill the requisition,
-            route the approval, draft the PO, assemble the customs packet. AI
-            drafts; the human keeps every control.
+            route the approval, draft the PO, assemble the customs packet. Reserve
+            drafts every document; you keep every control.
           </p>
         </div>
       </section>

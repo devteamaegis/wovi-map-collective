@@ -3,7 +3,8 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
-  Sparkles,
+  PenLine,
+  Inbox,
   Send,
   Radio,
   CheckCircle2,
@@ -37,7 +38,7 @@ import {
   actorBadge,
 } from "./badges";
 import { fmtMoney } from "@/lib/reserve/logic";
-import { PIPELINE } from "@/lib/reserve/types";
+import { PIPELINE, PHASES } from "@/lib/reserve/types";
 import { timeAgo } from "@/lib/format";
 import {
   confirmUrgencyAction,
@@ -61,22 +62,47 @@ import {
 // Loose structural type for the serialized SpotBuyDetail from the repo.
 type Detail = any;
 
-function AiTag() {
+function DraftTag() {
   return (
     <span className="inline-flex items-center gap-1 rounded-md border border-[#cdddec] bg-accent-pale px-1.5 py-0.5 text-[10px] font-medium text-[#2f4d68]">
-      <Sparkles size={11} /> AI-drafted
+      <PenLine size={11} /> Draft
     </span>
   );
 }
 
-function Stage({
+function PhaseHeader({
   n,
+  label,
+  blurb,
+  state,
+}: {
+  n: string;
+  label: string;
+  blurb: string;
+  state: "done" | "active" | "upcoming";
+}) {
+  return (
+    <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 pt-2">
+      <Eyebrow as="h2">
+        Phase {n} · {label}
+      </Eyebrow>
+      <span className="text-[12px] text-ink-3">{blurb}</span>
+      {state === "done" ? (
+        <span className="ml-auto text-[11px] font-medium text-good">Complete</span>
+      ) : state === "active" ? (
+        <span className="ml-auto text-[11px] font-medium text-accent">In progress</span>
+      ) : null}
+    </div>
+  );
+}
+
+function Stage({
   icon: Icon,
   title,
   state,
   children,
 }: {
-  n: string;
+  n?: string;
   icon: typeof Radio;
   title: string;
   state: "done" | "active" | "upcoming";
@@ -90,7 +116,7 @@ function Stage({
     >
       <div className="flex items-center gap-2.5 border-b border-rule px-4 py-3 sm:px-5">
         <span
-          className={`grid h-7 w-7 shrink-0 place-items-center rounded-full text-[12px] font-medium ${
+          className={`grid h-7 w-7 shrink-0 place-items-center rounded-full ${
             state === "done"
               ? "bg-[#e4efea] text-good-text"
               : state === "active"
@@ -98,10 +124,9 @@ function Stage({
                 : "bg-paper-2 text-ink-3"
           }`}
         >
-          {state === "done" ? <CheckCircle2 size={15} /> : n}
+          {state === "done" ? <CheckCircle2 size={15} /> : <Icon size={14} />}
         </span>
-        <Icon size={15} className="text-ink-3" />
-        <h2 className="font-medium text-ink">{title}</h2>
+        <h3 className="font-medium text-ink">{title}</h3>
         {state === "done" ? (
           <span className="ml-auto text-[11px] font-medium text-good">Done</span>
         ) : state === "active" ? (
@@ -134,6 +159,18 @@ export function SpotBuyWorkspace({ detail }: { detail: Detail }) {
     if (idx === statusIdx) return "active";
     return "upcoming";
   };
+  const phaseState = (
+    stages: string[]
+  ): "done" | "active" | "upcoming" => {
+    if (sb.status === "closed") return "done";
+    const idxs = stages.map((s) => PIPELINE.findIndex((p) => p.key === s));
+    const min = Math.min(...idxs);
+    const max = Math.max(...idxs);
+    if (sb.status === "cancelled") return statusIdx > max ? "done" : "upcoming";
+    if (statusIdx > max) return "done";
+    if (statusIdx >= min) return "active";
+    return "upcoming";
+  };
 
   const rfq = detail.rfq;
   const invites = detail.invites as any[];
@@ -149,14 +186,14 @@ export function SpotBuyWorkspace({ detail }: { detail: Detail }) {
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
       {/* Pipeline column */}
       <div className="space-y-4 lg:col-span-2">
-        {/* Stepper */}
+        {/* 3-phase stepper */}
         <div className="flex flex-wrap items-center gap-1.5">
-          {PIPELINE.map((p, i) => {
-            const st = stageState(p.key);
+          {PHASES.map((ph, i) => {
+            const st = phaseState(ph.stages);
             return (
-              <span key={p.key} className="flex items-center gap-1.5">
+              <span key={ph.key} className="flex items-center gap-1.5">
                 <span
-                  className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-[11px] ${
+                  className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-medium ${
                     st === "done"
                       ? "bg-[#e4efea] text-good-text"
                       : st === "active"
@@ -165,9 +202,9 @@ export function SpotBuyWorkspace({ detail }: { detail: Detail }) {
                   }`}
                 >
                   {st === "done" ? <CheckCircle2 size={12} /> : <Circle size={11} />}
-                  {p.label}
+                  {ph.label}
                 </span>
-                {i < PIPELINE.length - 1 ? (
+                {i < PHASES.length - 1 ? (
                   <span className="text-ink-3">→</span>
                 ) : null}
               </span>
@@ -175,8 +212,15 @@ export function SpotBuyWorkspace({ detail }: { detail: Detail }) {
           })}
         </div>
 
-        {/* Stage 1 — Triage */}
-        <Stage n="1" icon={Clock3} title="Triage — confirm the urgent need" state={stageState("triage")}>
+        {/* Phase 1 — Source */}
+        <PhaseHeader
+          n="1"
+          label="Source"
+          blurb="Confirm the need, broadcast, compare quotes"
+          state={phaseState(PHASES[0].stages)}
+        />
+
+        <Stage n="1" icon={Clock3} title="Confirm the urgent need" state={stageState("triage")}>
           {sb.urgency_confirmed ? (
             <p className="text-sm text-ink-2">
               Urgency confirmed — cleared to source. Detection aggregated from the
@@ -209,14 +253,14 @@ export function SpotBuyWorkspace({ detail }: { detail: Detail }) {
           {!rfq ? (
             <div className="flex flex-wrap items-center justify-between gap-3">
               <p className="text-sm text-ink-3">
-                AI drafts a tailored RFQ and pre-selects the approved supplier base.
+                Reserve drafts a tailored RFQ and pre-selects the approved supplier base.
               </p>
               <button
                 onClick={() => run(() => draftRfqAction(sb.id))}
                 disabled={pending || !sb.urgency_confirmed}
                 className="btn btn-primary btn-sm"
               >
-                <Sparkles size={14} /> Draft RFQ
+                <PenLine size={14} /> Draft RFQ
               </button>
             </div>
           ) : rfq.status === "draft" ? (
@@ -262,7 +306,14 @@ export function SpotBuyWorkspace({ detail }: { detail: Detail }) {
           ) : null}
         </Stage>
 
-        {/* Stage 4 — Requisition */}
+        {/* Phase 2 — Approve */}
+        <PhaseHeader
+          n="2"
+          label="Approve"
+          blurb="Build the requisition, route the sign-off"
+          state={phaseState(PHASES[1].stages)}
+        />
+
         <Stage n="4" icon={ShoppingCart} title="Pre-fill the requisition" state={stageState("requisition")}>
           {!req ? (
             <div className="flex flex-wrap items-center justify-between gap-3">
@@ -275,7 +326,7 @@ export function SpotBuyWorkspace({ detail }: { detail: Detail }) {
                 disabled={pending || !selectedQuote}
                 className="btn btn-primary btn-sm"
               >
-                <Sparkles size={14} /> Pre-fill requisition
+                <PenLine size={14} /> Pre-fill requisition
               </button>
             </div>
           ) : (
@@ -337,7 +388,14 @@ export function SpotBuyWorkspace({ detail }: { detail: Detail }) {
           )}
         </Stage>
 
-        {/* Stage 6 — PO */}
+        {/* Phase 3 — Execute */}
+        <PhaseHeader
+          n="3"
+          label="Execute"
+          blurb="Release the PO, clear customs, receive & match"
+          state={phaseState(PHASES[2].stages)}
+        />
+
         <Stage n="6" icon={ShoppingCart} title="Draft the PO for release" state={stageState("po")}>
           {!po ? (
             <div className="flex flex-wrap items-center justify-between gap-3">
@@ -353,7 +411,7 @@ export function SpotBuyWorkspace({ detail }: { detail: Detail }) {
                 }
                 className="btn btn-primary btn-sm"
               >
-                <Sparkles size={14} /> Draft PO
+                <PenLine size={14} /> Draft PO
               </button>
             </div>
           ) : (
@@ -454,7 +512,7 @@ function RfqDraft({ rfq, invites, candidates, actor, onRun, pending }: any) {
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2">
-        <AiTag />
+        <DraftTag />
         <span className="text-[12px] text-ink-3">Review and edit before sending.</span>
       </div>
       <textarea
@@ -542,7 +600,7 @@ function RfqSent({ invites, spotBuyId, hasQuotes, onRun, pending }: any) {
           disabled={pending}
           className="btn btn-sm"
         >
-          <Sparkles size={14} /> Simulate incoming quotes
+          <Inbox size={14} /> Simulate incoming quotes
         </button>
       ) : null}
     </div>
@@ -631,7 +689,7 @@ function RequisitionPanel({ req, actor, onRun, pending }: any) {
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2">
-        <AiTag />
+        <DraftTag />
         {missing.length ? (
           <Badge tone="warn">{missing.length} missing field(s)</Badge>
         ) : (
@@ -731,7 +789,7 @@ function PoPanel({ po, actor, onRun, pending }: any) {
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2">
-        <AiTag />
+        <DraftTag />
         <span className="mono text-[13px] font-medium text-ink">{po.po_number}</span>
         <Badge tone={poBadge(po.status).tone}>{poBadge(po.status).label}</Badge>
       </div>
@@ -817,7 +875,7 @@ function CustomsPanel({ sb, customs, actor, onRun, pending }: any) {
           disabled={pending}
           className="btn btn-primary btn-sm"
         >
-          <Sparkles size={14} /> Assemble packet
+          <FileText size={14} /> Assemble packet
         </button>
       </div>
     );
@@ -825,7 +883,7 @@ function CustomsPanel({ sb, customs, actor, onRun, pending }: any) {
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2">
-        <AiTag />
+        <DraftTag />
         <Badge tone={customsBadge(customs.status).tone}>
           {customsBadge(customs.status).label}
         </Badge>

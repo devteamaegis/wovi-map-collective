@@ -114,9 +114,9 @@ export const URGENCY_RANK: Record<Urgency, number> = {
   low: 3,
 };
 
-// ---- Deterministic "AI drafting" -----------------------------------------
+// ---- Deterministic document drafting --------------------------------------
 
-/** Draft a tailored RFQ body from the spot buy (labelled AI-drafted in the UI). */
+/** Draft a tailored RFQ body from the spot buy (labelled "Draft" in the UI). */
 export function draftRfqBody(
   sb: SpotBuy,
   buyerOrgName: string | null,

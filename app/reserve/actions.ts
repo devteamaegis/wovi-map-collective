@@ -52,6 +52,7 @@ import { upsertFxRate } from "@/lib/repos/fx";
 import { parseQuoteText, type ParseResult } from "@/lib/repos/quote-ai";
 import { saveAttachment, deleteAttachment, type AttachmentKind } from "@/lib/repos/attachments";
 import { currentUser, requireUser, AuthError } from "@/lib/auth";
+import { gateRun, recordRun } from "@/lib/paywall";
 import { getDb } from "@/lib/db";
 
 function rall() {
@@ -77,6 +78,11 @@ export interface ActionResult {
 // ---- create -----------------------------------------------------------------
 export async function createSpotBuyAction(formData: FormData) {
   const pid = await actorPid();
+  // Anonymous demo visitors are metered; signed-in users never are.
+  if (pid == null) {
+    const gate = await gateRun();
+    if (!gate.allowed) redirect("/unlock?from=reserve");
+  }
   const id = createSpotBuy({
     title: String(formData.get("title") || "").trim(),
     material_number: ((formData.get("material_number") as string) || "").trim() || null,
@@ -97,6 +103,7 @@ export async function createSpotBuyAction(formData: FormData) {
     ship_to_country: ((formData.get("ship_to_country") as string) || "").trim() || null,
     incoterm: ((formData.get("incoterm") as string) || "").trim() || null,
   });
+  if (pid == null) await recordRun();
   rall();
   redirect(`/reserve/${id}`);
 }

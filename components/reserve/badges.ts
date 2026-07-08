@@ -82,7 +82,7 @@ export function inviteBadge(v: string) {
 
 export function actorBadge(v: string) {
   const m: Record<string, { label: string; tone: Tone }> = {
-    ai: T("AI", "accent"),
+    ai: T("Reserve", "accent"),
     human: T("Human", "navy"),
     system: T("System", "neutral"),
   };

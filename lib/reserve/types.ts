@@ -251,3 +251,32 @@ export const PIPELINE: {
   { key: "receiving", label: "Receipt & match", n: "7" },
   { key: "closed", label: "Closed", n: "8" },
 ];
+
+// The stages grouped into 3 phases for the workspace UI. The underlying state
+// machine (SpotBuyStatus) is unchanged — this grouping is presentation only,
+// so the queue reads as three clear phases instead of seven numbered steps.
+export const PHASES: {
+  key: string;
+  label: string;
+  blurb: string;
+  stages: SpotBuyStatus[];
+}[] = [
+  {
+    key: "source",
+    label: "Source",
+    blurb: "Confirm the need, broadcast, compare quotes",
+    stages: ["triage", "sourcing", "quoting"],
+  },
+  {
+    key: "approve",
+    label: "Approve",
+    blurb: "Build the requisition, route the sign-off",
+    stages: ["requisition", "approval"],
+  },
+  {
+    key: "execute",
+    label: "Execute",
+    blurb: "Release the PO, clear customs, receive & match",
+    stages: ["po", "receiving", "closed"],
+  },
+];

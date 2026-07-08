@@ -2,6 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { currentUser } from "@/lib/auth";
+import { gateRun, recordRun } from "@/lib/paywall";
 import {
   createNeed,
   setNeedStatus,
@@ -64,6 +66,12 @@ function numOrNull(v: FormDataEntryValue | null): number | null {
 // ----------------------------------------------------------------- NEEDS
 
 export async function createNeedAction(formData: FormData) {
+  // Anonymous demo visitors are metered; signed-in users never are.
+  const authed = (await currentUser()) != null;
+  if (!authed) {
+    const gate = await gateRun();
+    if (!gate.allowed) redirect("/unlock?from=needs");
+  }
   const id = createNeed({
     title: String(formData.get("title") || "").trim(),
     kind: (formData.get("kind") as NeedKind) || "supplier",
@@ -74,6 +82,7 @@ export async function createNeedAction(formData: FormData) {
     requester_person_id: numOrNull(formData.get("requester_person_id")),
     priority: (formData.get("priority") as Priority) || "med",
   });
+  if (!authed) await recordRun();
   revalidateEverything();
   redirect(`/needs/${id}`);
 }
