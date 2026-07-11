@@ -438,6 +438,8 @@ export function SpotBuyWorkspace({ detail }: { detail: Detail }) {
             <ReceivingPanel
               spotBuyId={sb.id}
               receipts={detail.receipts ?? []}
+              invoices={detail.invoices ?? []}
+              invoicedTotal={detail.invoicedTotal ?? 0}
               orderedQty={req?.quantity ?? sb.quantity}
               uom={req?.uom ?? sb.uom}
               poAmount={po?.total_value ?? req?.total_value ?? 0}

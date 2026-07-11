@@ -17,8 +17,9 @@ import {
   rankQuotes,
   threeWayMatch,
   MATCH_LABEL,
+  fmtMoney,
 } from "../reserve/logic";
-import type { RankedQuote } from "../reserve/logic";
+import type { RankedQuote, MatchStatus } from "../reserve/logic";
 import type {
   SpotBuy,
   SpotBuyStatus,
@@ -377,6 +378,8 @@ export interface SpotBuyDetail {
   candidates: CandidateSupplier[];
   lines: SpotBuyLine[];
   receipts: GoodsReceipt[];
+  invoices: SupplierInvoice[];
+  invoicedTotal: number;
   attachments: import("./attachments").Attachment[];
 }
 
@@ -472,6 +475,8 @@ export function spotBuyDetail(id: number): SpotBuyDetail | null {
     candidates: candidateSuppliers(spotBuy),
     lines: spotBuyLines(id),
     receipts: goodsReceipts(id),
+    invoices: listSupplierInvoices(id),
+    invoicedTotal: invoicedTotal(id),
     attachments: listAttachments(id),
   };
 }
@@ -1477,8 +1482,6 @@ export function goodsReceipts(spotBuyId: number): GoodsReceipt[] {
 export interface RecordReceiptInput {
   spot_buy_id: number;
   quantity_received: number;
-  invoice_number?: string | null;
-  invoice_amount?: number | null;
   partial?: boolean;
 }
 
@@ -1507,18 +1510,13 @@ export function recordGoodsReceipt(input: RecordReceiptInput, personId: number |
   const cumulative = priorReceived + input.quantity_received;
   const isPartial = input.partial ?? cumulative + 1e-9 < qtyOrdered;
 
-  // The 3-way match only runs once the order is fully received. A partial
-  // shipment stays 'pending' (awaiting the remainder) rather than being flagged
-  // as a quantity variance against the full order (#13).
-  const match = isPartial
+  // The receipt records the goods (quantity) leg only; the price leg comes from
+  // supplier invoices. A partial receipt stays 'pending'; a full receipt is
+  // 'matched' or 'qty_variance' (price is judged separately, against invoices).
+  const qtyStatus: MatchStatus = isPartial
     ? "pending"
-    : threeWayMatch({
-        qtyOrdered,
-        qtyReceived: cumulative,
-        poAmount,
-        invoiceAmount: input.invoice_amount ?? null,
-      });
-  const clean = match === "matched" || match === "pending";
+    : threeWayMatch({ qtyOrdered, qtyReceived: cumulative, poAmount, invoiceAmount: null });
+  const clean = qtyStatus === "matched" || qtyStatus === "pending";
 
   const info = db
     .prepare(
@@ -1531,11 +1529,11 @@ export function recordGoodsReceipt(input: RecordReceiptInput, personId: number |
       qtyOrdered,
       input.quantity_received,
       isPartial ? 1 : 0,
-      input.invoice_number ?? null,
-      input.invoice_amount ?? null,
+      null,
+      null,
       poAmount,
-      match,
-      clean ? null : MATCH_LABEL[match],
+      qtyStatus,
+      clean ? null : MATCH_LABEL[qtyStatus],
       personId,
       nowIso()
     );
@@ -1545,26 +1543,137 @@ export function recordGoodsReceipt(input: RecordReceiptInput, personId: number |
     input.spot_buy_id,
     "human",
     isPartial ? "Partial goods receipt" : "Goods received",
-    `${input.quantity_received}${sb.uom ? " " + sb.uom : ""} received (${cumulative}/${qtyOrdered})${isPartial ? " — awaiting remainder" : `; ${MATCH_LABEL[match]}`}`,
+    `${input.quantity_received}${sb.uom ? " " + sb.uom : ""} received (${cumulative}/${qtyOrdered})${isPartial ? " — awaiting remainder" : qtyStatus === "matched" ? " — quantities match" : `; ${MATCH_LABEL[qtyStatus]}`}`,
     { personId, stage: "receiving" }
   );
 
-  // A clean close needs a released PO, a full receipt, a qty+price match, AND an
-  // actual invoice — "matched" alone can mean "no invoice was provided" (the
-  // price leg is skipped when invoice_amount is null), which must not authorize
-  // payment against a non-existent invoice.
-  const invoiced = input.invoice_amount != null;
-  const canClose = !!po && po.status === "released" && !isPartial && match === "matched" && invoiced;
-  if (canClose) {
-    db.prepare("UPDATE purchase_orders SET status='closed' WHERE id=?").run(po!.id);
-    setStatus(db, input.spot_buy_id, "closed");
-    logAudit(db, input.spot_buy_id, "system", "Spot buy closed", "3-way match clean — receipt = PO = invoice", { stage: "closed" });
-  } else if (!isPartial && match !== "matched") {
-    logAudit(db, input.spot_buy_id, "system", "3-way match exception", MATCH_LABEL[match], { stage: "receiving" });
-  } else if (!isPartial && !invoiced) {
-    logAudit(db, input.spot_buy_id, "system", "Awaiting supplier invoice", "Full quantity received; record the supplier invoice to complete the 3-way match", { stage: "receiving" });
+  // Close if an invoice already covers the PO; else note what's outstanding.
+  const settled = settleMatch(input.spot_buy_id, personId);
+  if (!settled.closed && !isPartial) {
+    if (!settled.hasInvoice) {
+      logAudit(db, input.spot_buy_id, "system", "Awaiting supplier invoice", "Full quantity received; record the supplier invoice to complete the 3-way match", { stage: "receiving" });
+    } else if (settled.match !== "matched") {
+      logAudit(db, input.spot_buy_id, "system", "3-way match exception", MATCH_LABEL[settled.match], { stage: "receiving" });
+    }
   }
   return Number(info.lastInsertRowid);
+}
+
+// ---- supplier invoices (first-class 3-way match) --------------------------
+
+export interface SupplierInvoice {
+  id: number;
+  spot_buy_id: number;
+  po_id: number | null;
+  invoice_number: string;
+  amount: number;
+  currency: string;
+  recorded_by_person_id: number | null;
+  created_at: string;
+}
+
+export function listSupplierInvoices(spotBuyId: number): SupplierInvoice[] {
+  return getDb()
+    .prepare("SELECT * FROM supplier_invoices WHERE spot_buy_id=? ORDER BY id")
+    .all(spotBuyId) as SupplierInvoice[];
+}
+
+export function invoicedTotal(spotBuyId: number): number {
+  return (
+    getDb()
+      .prepare("SELECT COALESCE(SUM(amount),0) s FROM supplier_invoices WHERE spot_buy_id=?")
+      .get(spotBuyId) as { s: number }
+  ).s;
+}
+
+// Current state of the goods (receipts) and price (invoices) legs of the match.
+interface MatchState {
+  received: number;
+  invoiced: number;
+  qtyOrdered: number;
+  poAmount: number;
+  fullyReceived: boolean;
+  hasInvoice: boolean;
+  match: MatchStatus;
+}
+
+function matchState(spotBuyId: number): MatchState {
+  const db = getDb();
+  const sb = getSpotBuy(spotBuyId)!;
+  const po = db.prepare("SELECT * FROM purchase_orders WHERE spot_buy_id=? ORDER BY id DESC LIMIT 1").get(spotBuyId) as PurchaseOrder | undefined;
+  const req = db.prepare("SELECT * FROM requisitions WHERE spot_buy_id=? ORDER BY id DESC LIMIT 1").get(spotBuyId) as Requisition | undefined;
+  const qtyOrdered = req?.quantity ?? sb.quantity;
+  const poAmount = po?.total_value ?? req?.total_value ?? 0;
+  const received = (db.prepare("SELECT COALESCE(SUM(quantity_received),0) s FROM goods_receipts WHERE spot_buy_id=?").get(spotBuyId) as { s: number }).s;
+  const invoiced = invoicedTotal(spotBuyId);
+  const fullyReceived = received + 1e-9 >= qtyOrdered;
+  const hasInvoice = invoiced > 0;
+  const match = threeWayMatch({ qtyOrdered, qtyReceived: received, poAmount, invoiceAmount: hasInvoice ? invoiced : null });
+  return { received, invoiced, qtyOrdered, poAmount, fullyReceived, hasInvoice, match };
+}
+
+// Close the buy iff the PO is released, the order is fully received, at least one
+// invoice exists, and qty + price both match within tolerance.
+function settleMatch(spotBuyId: number, _personId: number | null): MatchState & { closed: boolean } {
+  const db = getDb();
+  const st = matchState(spotBuyId);
+  const sb = getSpotBuy(spotBuyId)!;
+  if (sb.status !== "receiving") return { ...st, closed: false };
+  const po = db.prepare("SELECT id,status FROM purchase_orders WHERE spot_buy_id=? ORDER BY id DESC LIMIT 1").get(spotBuyId) as { id: number; status: string } | undefined;
+  const canClose = !!po && po.status === "released" && st.fullyReceived && st.hasInvoice && st.match === "matched";
+  if (canClose) {
+    db.prepare("UPDATE purchase_orders SET status='closed' WHERE id=?").run(po!.id);
+    setStatus(db, spotBuyId, "closed");
+    logAudit(db, spotBuyId, "system", "Spot buy closed", "3-way match clean — receipt = PO = invoice", { stage: "closed" });
+    return { ...st, closed: true };
+  }
+  return { ...st, closed: false };
+}
+
+export interface RecordInvoiceInput {
+  spot_buy_id: number;
+  invoice_number: string;
+  amount: number;
+}
+export type RecordInvoiceResult =
+  | { ok: true; id: number; closed: boolean }
+  | { ok: false; error: string };
+
+export function recordSupplierInvoice(input: RecordInvoiceInput, personId: number | null): RecordInvoiceResult {
+  const db = getDb();
+  const sb = getSpotBuy(input.spot_buy_id);
+  if (!sb) return { ok: false, error: "Spot buy not found." };
+  if (sb.status === "closed" || sb.status === "cancelled") {
+    return { ok: false, error: "This spot buy is closed — no further invoices can be recorded." };
+  }
+  const number = (input.invoice_number || "").trim();
+  if (!number) return { ok: false, error: "Invoice number is required." };
+  if (!(input.amount > 0)) return { ok: false, error: "Invoice amount must be greater than zero." };
+  const dup = db
+    .prepare("SELECT 1 FROM supplier_invoices WHERE spot_buy_id=? AND lower(invoice_number)=lower(?)")
+    .get(input.spot_buy_id, number);
+  if (dup) return { ok: false, error: `Invoice ${number} has already been recorded for this buy.` };
+  const po = db
+    .prepare("SELECT id,currency FROM purchase_orders WHERE spot_buy_id=? ORDER BY id DESC LIMIT 1")
+    .get(input.spot_buy_id) as { id: number; currency: string } | undefined;
+  const cur = po?.currency ?? "USD";
+  const info = db
+    .prepare("INSERT INTO supplier_invoices (spot_buy_id,po_id,invoice_number,amount,currency,recorded_by_person_id,created_at) VALUES (?,?,?,?,?,?,?)")
+    .run(input.spot_buy_id, po?.id ?? null, number, input.amount, cur, personId, nowIso());
+  const st = matchState(input.spot_buy_id);
+  logAudit(
+    db,
+    input.spot_buy_id,
+    "human",
+    "Supplier invoice recorded",
+    `${number} — ${fmtMoney(input.amount, cur)} (invoiced ${fmtMoney(st.invoiced, cur)} of ${fmtMoney(st.poAmount, cur)})`,
+    { personId, stage: "receiving" }
+  );
+  const settled = settleMatch(input.spot_buy_id, personId);
+  if (!settled.closed && settled.fullyReceived && settled.match !== "matched") {
+    logAudit(db, input.spot_buy_id, "system", "3-way match exception", MATCH_LABEL[settled.match], { stage: "receiving" });
+  }
+  return { ok: true, id: Number(info.lastInsertRowid), closed: settled.closed };
 }
 
 // Buyer override to close a buy stuck on a 3-way-match variance (qty/price

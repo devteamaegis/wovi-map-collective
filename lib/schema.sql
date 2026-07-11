@@ -419,6 +419,23 @@ CREATE TABLE IF NOT EXISTS goods_receipts (
 );
 CREATE INDEX IF NOT EXISTS idx_gr_spot_buy ON goods_receipts(spot_buy_id);
 
+-- ============ SUPPLIER INVOICES (first-class 3-way match) ====================
+-- Invoices are their own records (not a field on the receipt) so partial
+-- invoices accumulate and the invoiced total is matched against the PO. The
+-- unique index enforces duplicate-invoice-number detection per buy.
+CREATE TABLE IF NOT EXISTS supplier_invoices (
+  id INTEGER PRIMARY KEY,
+  spot_buy_id INTEGER NOT NULL REFERENCES spot_buys(id),
+  po_id INTEGER REFERENCES purchase_orders(id),
+  invoice_number TEXT NOT NULL,
+  amount REAL NOT NULL DEFAULT 0,
+  currency TEXT NOT NULL DEFAULT 'USD',
+  recorded_by_person_id INTEGER REFERENCES people(id),
+  created_at TEXT NOT NULL
+);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_supplier_invoices_unique
+  ON supplier_invoices(spot_buy_id, lower(invoice_number));
+
 -- ============ NOTIFICATION PREFERENCES + CHANNELS (#12) ======================
 CREATE TABLE IF NOT EXISTS notification_channels (
   id INTEGER PRIMARY KEY,

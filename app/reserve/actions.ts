@@ -27,6 +27,7 @@ import {
   sodConflict,
   recordGoodsReceipt,
   reconcileReceipt,
+  recordSupplierInvoice,
   addSpotBuyLine,
   deleteSpotBuyLine,
   processDueJobs,
@@ -290,8 +291,6 @@ export async function cancelSpotBuyAction(spotBuyId: number, _personId?: number 
 export async function recordReceiptAction(input: {
   spot_buy_id: number;
   quantity_received: number;
-  invoice_number?: string | null;
-  invoice_amount?: number | null;
   partial?: boolean;
 }): Promise<ActionResult> {
   if (!(await canExecute())) return { ok: false, error: "Your role can't record goods receipts." };
@@ -302,6 +301,18 @@ export async function recordReceiptAction(input: {
   }
   rall();
   return { ok: true };
+}
+
+// Record a supplier invoice (its own record, matched cumulatively against the PO).
+export async function recordInvoiceAction(input: {
+  spot_buy_id: number;
+  invoice_number: string;
+  amount: number;
+}): Promise<ActionResult> {
+  if (!(await canExecute())) return { ok: false, error: "Your role can't record invoices." };
+  const r = recordSupplierInvoice(input, await actorPid());
+  rall();
+  return r.ok ? { ok: true } : { ok: false, error: r.error };
 }
 
 // Buyer override to close a buy stuck on a 3-way-match variance.
