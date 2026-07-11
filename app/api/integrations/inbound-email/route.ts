@@ -56,7 +56,10 @@ export async function POST(request: Request) {
     if (!supplierOrgId) {
       const domain = from.split("@")[1];
       if (domain) {
-        const p2 = db.prepare("SELECT org_id FROM people WHERE email LIKE ? AND org_id IS NOT NULL LIMIT 1").get(`%@${domain}`) as { org_id: number | null } | undefined;
+        // Escape LIKE metacharacters in the untrusted sender domain so `%`/`_`
+        // can't widen the match and misattribute the quote to another vendor.
+        const escDomain = domain.replace(/[%_\\]/g, "\\$&");
+        const p2 = db.prepare("SELECT org_id FROM people WHERE lower(email) LIKE lower(?) ESCAPE '\\' AND org_id IS NOT NULL LIMIT 1").get(`%@${escDomain}`) as { org_id: number | null } | undefined;
         if (p2?.org_id) supplierOrgId = p2.org_id;
       }
     }

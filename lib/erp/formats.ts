@@ -34,7 +34,7 @@ export function poToCxml(po: PoDoc): string {
       (l) => `      <ItemOut quantity="${l.quantity}" lineNumber="${l.line_no}">
         <ItemID><SupplierPartID>${xmlEscape(l.material_number ?? "N/A")}</SupplierPartID></ItemID>
         <ItemDetail>
-          <UnitPrice><Money currency="${po.currency}">${l.unit_price}</Money></UnitPrice>
+          <UnitPrice><Money currency="${xmlEscape(po.currency)}">${l.unit_price}</Money></UnitPrice>
           <Description xml:lang="en">${xmlEscape(l.description ?? "")}</Description>
           <UnitOfMeasure>${xmlEscape(l.uom ?? "EA")}</UnitOfMeasure>
         </ItemDetail>
@@ -46,7 +46,7 @@ export function poToCxml(po: PoDoc): string {
   <Request>
     <OrderRequest>
       <OrderRequestHeader orderID="${xmlEscape(po.po_number)}" type="new">
-        <Total><Money currency="${po.currency}">${po.total_value}</Money></Total>
+        <Total><Money currency="${xmlEscape(po.currency)}">${po.total_value}</Money></Total>
         <ShipTo><Address><Name xml:lang="en">${xmlEscape(po.plant ?? po.buyer ?? "")}</Name></Address></ShipTo>
         <Contact role="supplier"><Name xml:lang="en">${xmlEscape(po.supplier ?? "")}</Name></Contact>
         <Comments>Incoterm ${xmlEscape(po.incoterm ?? "")}; cost center ${xmlEscape(po.cost_center ?? "")}</Comments>

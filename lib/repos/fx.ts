@@ -28,6 +28,13 @@ export function toUsd(amount: number, currency: string): number {
   return amount * rateToUsd(currency);
 }
 
+// Inverse of toUsd: convert a USD amount into `currency`. Used to bring
+// USD-denominated line items into a foreign-currency quote total.
+export function fromUsd(amountUsd: number, currency: string): number {
+  const r = rateToUsd(currency);
+  return r ? amountUsd / r : amountUsd;
+}
+
 export function isKnownCurrency(currency: string): boolean {
   if (currency === "USD") return true;
   return !!getDb().prepare("SELECT 1 FROM fx_rates WHERE currency=?").get(currency);

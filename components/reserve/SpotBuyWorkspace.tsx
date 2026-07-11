@@ -442,6 +442,7 @@ export function SpotBuyWorkspace({ detail }: { detail: Detail }) {
               uom={req?.uom ?? sb.uom}
               poAmount={po?.total_value ?? req?.total_value ?? 0}
               currency={req?.currency ?? "USD"}
+              closed={sb.status === "closed" || sb.status === "cancelled"}
               onRun={run}
               pending={pending}
             />
@@ -642,19 +643,29 @@ function QuoteTable({ quotes, actor, onRun, pending }: any) {
                   <span className="rounded bg-paper-2 px-1 text-[10px] uppercase text-ink-3">
                     {q.source_format}
                   </span>
+                  {q.currency_known === false ? (
+                    <span className="rounded bg-[#fbe9e7] px-1 text-[10px] text-danger">
+                      check FX
+                    </span>
+                  ) : null}
                 </div>
               </td>
               <td className="py-2.5 pr-3 tabular-nums text-ink-2">
-                {fmtMoney(q.unit_price)}
+                {fmtMoney(q.unit_price, q.currency)}
               </td>
               <td className="py-2.5 pr-3 tabular-nums text-ink-2">
                 {q.lead_time_days}d
               </td>
               <td className="py-2.5 pr-3 tabular-nums text-ink-2">
-                {fmtMoney(q.freight_cost)}
+                {fmtMoney(q.freight_cost, q.currency)}
               </td>
               <td className="py-2.5 pr-3 font-medium tabular-nums text-ink">
-                {fmtMoney(Math.round(q.landed))}
+                {fmtMoney(Math.round(q.landed), q.currency)}
+                {q.currency && q.currency !== "USD" ? (
+                  <div className="text-[10px] font-normal text-ink-3">
+                    ≈ {fmtMoney(Math.round(q.landedBase))}
+                  </div>
+                ) : null}
               </td>
               <td className="py-2.5 pr-3 text-right">
                 {q.selected ? (

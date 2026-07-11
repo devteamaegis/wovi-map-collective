@@ -30,7 +30,7 @@ export function listNeeds(filter: NeedFilter = {}): NeedWithMeta[] {
   const rows = db
     .prepare(
       `SELECT n.*, o.name AS requester_org_name, p.name AS requester_person_name,
-              (SELECT COUNT(*) FROM paths WHERE need_id = n.id) AS path_count
+              (SELECT COUNT(*) FROM paths WHERE need_id = n.id AND status NOT IN ('dead','declined')) AS path_count
        FROM needs n
        LEFT JOIN organizations o ON o.id = n.requester_org_id
        LEFT JOIN people p ON p.id = n.requester_person_id`
@@ -77,7 +77,7 @@ export function getNeed(id: number): NeedWithMeta | null {
   const r = db
     .prepare(
       `SELECT n.*, o.name AS requester_org_name, p.name AS requester_person_name,
-              (SELECT COUNT(*) FROM paths WHERE need_id = n.id) AS path_count
+              (SELECT COUNT(*) FROM paths WHERE need_id = n.id AND status NOT IN ('dead','declined')) AS path_count
        FROM needs n
        LEFT JOIN organizations o ON o.id = n.requester_org_id
        LEFT JOIN people p ON p.id = n.requester_person_id

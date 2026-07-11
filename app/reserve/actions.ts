@@ -26,6 +26,7 @@ import {
   getSpotBuy,
   sodConflict,
   recordGoodsReceipt,
+  reconcileReceipt,
   addSpotBuyLine,
   deleteSpotBuyLine,
   processDueJobs,
@@ -246,11 +247,27 @@ export async function escalateApprovalAction(approvalId: number): Promise<Action
   rall();
   return { ok: true };
 }
+// Pipeline mutations that commit money or close the loop are gated to the
+// executing roles (never a read-only viewer). In demo mode requireUser
+// synthesizes an admin, so this is a no-op there; under WOVI_AUTH it enforces.
+const EXECUTOR_ROLES = ["admin", "broker", "buyer"] as const;
+async function canExecute(): Promise<boolean> {
+  try {
+    await requireUser([...EXECUTOR_ROLES]);
+    return true;
+  } catch (e) {
+    if (e instanceof AuthError) return false;
+    throw e;
+  }
+}
+
 export async function draftPoAction(spotBuyId: number) {
+  if (!(await canExecute())) return;
   draftPo(spotBuyId);
   rall();
 }
 export async function releasePoAction(poId: number, _personId?: number | null) {
+  if (!(await canExecute())) return;
   releasePo(poId, await actorPid());
   await deliverPendingEmails();
   rall();
@@ -264,6 +281,7 @@ export async function verifyCustomsAction(packetId: number, _personId?: number |
   rall();
 }
 export async function cancelSpotBuyAction(spotBuyId: number, _personId?: number | null) {
+  if (!(await canExecute())) return;
   cancelSpotBuy(spotBuyId, await actorPid());
   rall();
 }
@@ -275,9 +293,26 @@ export async function recordReceiptAction(input: {
   invoice_number?: string | null;
   invoice_amount?: number | null;
   partial?: boolean;
-}) {
-  recordGoodsReceipt(input, await actorPid());
+}): Promise<ActionResult> {
+  if (!(await canExecute())) return { ok: false, error: "Your role can't record goods receipts." };
+  try {
+    recordGoodsReceipt(input, await actorPid());
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : "Could not record the receipt." };
+  }
   rall();
+  return { ok: true };
+}
+
+// Buyer override to close a buy stuck on a 3-way-match variance.
+export async function reconcileReceiptAction(
+  spotBuyId: number,
+  note?: string | null
+): Promise<ActionResult> {
+  if (!(await canExecute())) return { ok: false, error: "Your role can't reconcile receipts." };
+  reconcileReceipt(spotBuyId, await actorPid(), note ?? null);
+  rall();
+  return { ok: true };
 }
 
 // ---- multi-line (#11) ------------------------------------------------------

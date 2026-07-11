@@ -110,7 +110,11 @@ export function cycleAnalytics(): CycleAnalytics {
 
   const resHours = resolutions.map((r) => r.hours).sort((a, b) => a - b);
   const avg = resHours.length ? resHours.reduce((s, x) => s + x, 0) / resHours.length : null;
-  const median = resHours.length ? resHours[Math.floor((resHours.length - 1) / 2)] : null;
+  const median = resHours.length
+    ? resHours.length % 2 === 1
+      ? resHours[(resHours.length - 1) / 2]
+      : (resHours[resHours.length / 2 - 1] + resHours[resHours.length / 2]) / 2
+    : null;
   const under = resolutions.filter((r) => r.underBenchmark).length;
 
   const stages: StageStat[] = STAGES.map((s) => {

@@ -125,6 +125,23 @@ test("parses the app's advertised '/kg' + bare-quantity format", () => {
   assert.equal(r.freight_cost, 26000);
   assert.equal(r.incoterm, "DAP");
 });
+test("keyword abutting the number (no separator) keeps the full amount", () => {
+  const r = parse.heuristicParseQuote("each$12.50, quantity 100 units");
+  assert.equal(r.unit_price, 12.5); // was 2.5 (dropped the leading '1') before the off-by-one fix
+});
+test("EU dot-grouped thousands with no decimal (1.234.567)", () => {
+  const r = parse.heuristicParseQuote("unit price €1.234.567 per unit");
+  assert.equal(r.unit_price, 1234567); // was NaN → dropped before the multi-dot fix
+  assert.equal(r.currency, "EUR");
+});
+test("ranks cross-currency quotes on their USD-base value", () => {
+  const rate = (c) => (c === "JPY" ? 0.0064 : 1);
+  const jpy = { id: 1, unit_price: 100, quantity: 100, freight_cost: 0, lead_time_days: 5, currency: "JPY" };
+  const usd = { id: 2, unit_price: 1, quantity: 100, freight_cost: 0, lead_time_days: 5, currency: "USD" };
+  const ranked = logic.rankQuotes([jpy, usd], rate); // JPY ≈ $64 landed vs $100
+  assert.equal(ranked[0].id, 1);
+  assert.equal(ranked.find((q) => q.id === 1).recommended, true);
+});
 test("handles EU decimal format (1.234,56)", () => {
   const r = parse.heuristicParseQuote("unit price 1.234,56 per unit");
   assert.equal(r.unit_price, 1234.56);

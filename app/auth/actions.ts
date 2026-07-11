@@ -38,7 +38,13 @@ export async function loginAction(formData: FormData) {
   const ua = (await headers()).get("user-agent");
   const raw = createSession(user!.id, ua);
   (await cookies()).set(SESSION_COOKIE, raw, COOKIE_OPTS);
-  redirect(next.startsWith("/") ? next : "/");
+  // Only same-origin absolute paths — reject protocol-relative ("//evil.com")
+  // and backslash ("/\evil.com") open-redirect payloads.
+  const safeNext =
+    next.startsWith("/") && !next.startsWith("//") && !next.startsWith("/\\")
+      ? next
+      : "/";
+  redirect(safeNext);
 }
 
 export async function logoutAction() {

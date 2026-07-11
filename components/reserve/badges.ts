@@ -32,6 +32,7 @@ export function spotStatusBadge(v: string) {
     requisition: T("Requisition", "accent"),
     approval: T("Awaiting approval", "warn"),
     po: T("PO", "navy"),
+    receiving: T("Receiving", "accent"),
     closed: T("Closed", "good"),
     cancelled: T("Cancelled", "neutral"),
   };

@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { PageContainer, PageHeader } from "@/components/Page";
 import { UsersPanel } from "@/components/auth/UsersPanel";
-import { currentUser, listUsers } from "@/lib/auth";
+import { currentUser, listUsers, authEnabled } from "@/lib/auth";
 import { listPeople } from "@/lib/repos/people";
 import { getDb } from "@/lib/db";
 
@@ -10,7 +10,9 @@ export const metadata = { title: "Users & roles" };
 
 export default async function UsersAdminPage() {
   const me = await currentUser();
-  if (me && me.role !== "admin") redirect("/reserve");
+  // When auth is on, a null `me` (e.g. a forged session cookie that passes the
+  // middleware presence check) must NOT fall through to the account list.
+  if (authEnabled() && me?.role !== "admin") redirect("/reserve");
 
   const db = getDb();
   const users = listUsers().map((u) => ({

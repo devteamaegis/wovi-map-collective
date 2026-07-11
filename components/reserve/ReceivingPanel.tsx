@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { PackageCheck, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { Badge, type Tone } from "@/components/Badge";
 import { fmtMoney, MATCH_LABEL, type MatchStatus } from "@/lib/reserve/logic";
-import { recordReceiptAction } from "@/app/reserve/actions";
+import { recordReceiptAction, reconcileReceiptAction } from "@/app/reserve/actions";
 
 const MATCH_TONE: Record<string, Tone> = {
   matched: "good",
@@ -21,6 +21,7 @@ export function ReceivingPanel({
   uom,
   poAmount,
   currency,
+  closed = false,
   onRun,
   pending,
 }: {
@@ -30,6 +31,7 @@ export function ReceivingPanel({
   uom: string | null;
   poAmount: number;
   currency: string;
+  closed?: boolean;
   onRun: (fn: () => Promise<unknown>) => void;
   pending: boolean;
 }) {
@@ -39,6 +41,11 @@ export function ReceivingPanel({
   const [invoiceNo, setInvoiceNo] = useState("");
   const [invoiceAmt, setInvoiceAmt] = useState<string>(String(poAmount || ""));
   const [partial, setPartial] = useState(false);
+  const [reconcileNote, setReconcileNote] = useState("");
+  const lastReceipt = receipts[receipts.length - 1];
+  const hasVariance =
+    !!lastReceipt &&
+    ["qty_variance", "price_variance", "both_variance"].includes(lastReceipt.match_status);
 
   // After router.refresh() (this panel stays mounted), re-seed the qty field to
   // what's still outstanding so a prior partial shipment doesn't leave a stale
@@ -71,6 +78,38 @@ export function ReceivingPanel({
         </ul>
       ) : null}
 
+      {hasVariance && !closed ? (
+        <div className="rounded-lg border border-[#e6c9a0] bg-[#fbf3e9] px-3 py-3">
+          <div className="flex items-center gap-2 text-warn-text">
+            <AlertTriangle size={15} />
+            <span className="text-[13px] font-medium">3-way match variance — needs a decision</span>
+          </div>
+          <p className="mt-1 text-[12px] text-ink-2">
+            Accept the variance (over/under-shipment or a price outside tolerance) and close the
+            buy, leaving a note on the audit trail.
+          </p>
+          <textarea
+            value={reconcileNote}
+            onChange={(e) => setReconcileNote(e.target.value)}
+            rows={2}
+            placeholder="Why is this variance acceptable? e.g. 'Supplier confirmed 3% overage, billed at contract price'"
+            className="field mt-2 w-full resize-y text-[13px]"
+          />
+          <button
+            onClick={() => onRun(() => reconcileReceiptAction(spotBuyId, reconcileNote || null))}
+            disabled={pending}
+            className="btn btn-warn btn-sm mt-2"
+          >
+            <CheckCircle2 size={14} /> Reconcile &amp; close
+          </button>
+        </div>
+      ) : null}
+
+      {closed ? (
+        <div className="flex items-center gap-2 rounded-lg border border-rule bg-[#e4efea] px-3 py-2.5 text-[13px] text-good-text">
+          <CheckCircle2 size={15} /> This buy is closed — the receiving ledger is final.
+        </div>
+      ) : (
       <div className="rounded-lg border border-rule px-3 py-3">
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           <label className="block">
@@ -112,6 +151,7 @@ export function ReceivingPanel({
           <PackageCheck size={14} /> Record receipt & match
         </button>
       </div>
+      )}
     </div>
   );
 }

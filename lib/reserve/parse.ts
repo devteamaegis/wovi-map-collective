@@ -44,6 +44,10 @@ function parseAmount(raw: string): number {
     // Multiple commas, or a trailing group of exactly 3 digits → thousands.
     if (parts.length > 2 || after.length === 3) s = s.replace(/,/g, "");
     else s = s.replace(",", "."); // e.g. "3,40" → 3.40 (EU decimal)
+  } else if (hasDot) {
+    // Dot(s) only. Multiple dots can only be EU thousands grouping
+    // ("1.234.567" → 1234567); a single dot stays a decimal point.
+    if ((s.match(/\./g) || []).length > 1) s = s.replace(/\./g, "");
   }
   const n = Number(s);
   return Number.isFinite(n) ? n : NaN;
@@ -58,7 +62,10 @@ function escapeRe(s: string): string {
 function kwMatch(hay: string, kw: string): number {
   const re = new RegExp("(?:^|[^a-z])" + escapeRe(kw), "i");
   const m = re.exec(hay);
-  return m ? m.index : -1;
+  // Return where the keyword ITSELF starts. The leading boundary group is
+  // zero-width at "^" but one char otherwise, so the keyword begins at
+  // m.index + (matchLength - keywordLength).
+  return m ? m.index + (m[0].length - kw.length) : -1;
 }
 
 const NUM_RE = /[£$€¥₹₩]?\s?\d[\d.,]*/;
@@ -75,7 +82,7 @@ function amountNear(text: string, keywords: string[]): number | null {
       if (at >= 0 && (hitAt === -1 || at < hitAt)) { hitAt = at; hitLen = k.length; }
     }
     if (hitAt === -1) continue;
-    const after = seg.slice(hitAt + 1 + hitLen);
+    const after = seg.slice(hitAt + hitLen);
     const m = after.match(NUM_RE) || seg.match(NUM_RE);
     if (m) {
       const val = parseAmount(m[0]);

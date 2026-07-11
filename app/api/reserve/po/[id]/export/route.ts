@@ -115,7 +115,10 @@ export async function GET(
 
   // CSV — header block then line items, quoting fields that need it.
   const esc = (v: unknown) => {
-    const s = v == null ? "" : String(v);
+    let s = v == null ? "" : String(v);
+    // Neutralize spreadsheet formula injection: a field an org name can set
+    // (e.g. `=HYPERLINK(...)`) must not execute when the CSV is opened in Excel.
+    if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
     return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
   };
   const rows: string[] = [];

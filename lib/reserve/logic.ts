@@ -56,7 +56,8 @@ export function downtimeExposure(sb: SpotBuy, nowIso: string): number {
 }
 
 export interface RankedQuote extends Quote {
-  landed: number;
+  landed: number; // in the quote's native currency
+  landedBase: number; // converted to the USD base for apples-to-apples ranking
   score: number;
   recommended: boolean;
   isCheapest: boolean;
@@ -65,23 +66,33 @@ export interface RankedQuote extends Quote {
 
 /**
  * Best-value ranking: landed cost with a mild lead-time penalty (speed matters
- * under line-down pressure). Lowest score wins.
+ * under line-down pressure). Lowest score wins. Quotes are ranked on their
+ * USD-base landed cost (via `rate`) so a JPY quote and a USD quote compare
+ * correctly — passing no rate keeps everything at par (1:1).
  */
-export function rankQuotes(quotes: Quote[]): RankedQuote[] {
+export function rankQuotes(
+  quotes: Quote[],
+  rate: (currency: string) => number = () => 1
+): RankedQuote[] {
   if (!quotes.length) return [];
-  const withLanded = quotes.map((q) => ({
-    ...q,
-    landed: landedTotal(q),
-    score: landedTotal(q) * (1 + 0.02 * q.lead_time_days),
-    recommended: false,
-    isCheapest: false,
-    isFastest: false,
-  }));
-  const minLanded = Math.min(...withLanded.map((q) => q.landed));
+  const withLanded = quotes.map((q) => {
+    const landed = landedTotal(q);
+    const landedBase = landed * rate(q.currency);
+    return {
+      ...q,
+      landed,
+      landedBase,
+      score: landedBase * (1 + 0.02 * q.lead_time_days),
+      recommended: false,
+      isCheapest: false,
+      isFastest: false,
+    };
+  });
+  const minLandedBase = Math.min(...withLanded.map((q) => q.landedBase));
   const minLead = Math.min(...withLanded.map((q) => q.lead_time_days));
   const best = withLanded.reduce((a, b) => (b.score < a.score ? b : a));
   for (const q of withLanded) {
-    q.isCheapest = q.landed === minLanded;
+    q.isCheapest = q.landedBase === minLandedBase;
     q.isFastest = q.lead_time_days === minLead;
     q.recommended = q.id === best.id;
   }

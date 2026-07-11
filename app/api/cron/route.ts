@@ -19,7 +19,9 @@ function timingEqual(a: string, b: string): boolean {
 // set: send it as `Authorization: Bearer <secret>` (preferred) or `?key=<secret>`.
 function authorized(req: Request): boolean {
   const secret = process.env.CRON_SECRET;
-  if (!secret) return true; // unset → open (local/dev)
+  // Unset → open in dev/demo, but fail-closed in production so a missing secret
+  // can't leave the job runner world-triggerable.
+  if (!secret) return process.env.NODE_ENV !== "production";
   const url = new URL(req.url);
   const bearer = req.headers.get("authorization") ?? "";
   const key = url.searchParams.get("key") ?? "";

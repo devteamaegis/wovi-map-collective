@@ -2,7 +2,7 @@ import "server-only";
 import { getDb } from "../db";
 import { nowIso, parseOrg } from "./util";
 import { addOutbox } from "./settings";
-import { toUsd } from "./fx";
+import { toUsd, rateToUsd, fromUsd, isKnownCurrency } from "./fx";
 import { listAttachments } from "./attachments";
 import { auditHash } from "../reserve/audit";
 import { signApprovalToken, appBaseUrl } from "../reserve/token";
@@ -280,6 +280,7 @@ export interface InviteRow extends RfqInvite {
 }
 export interface QuoteRow extends RankedQuote {
   supplier_name: string | null;
+  currency_known: boolean; // false → FX rate missing, ranked at par (needs review)
 }
 export interface ApprovalRow extends Approval {
   approver_name: string | null;
@@ -409,10 +410,11 @@ export function spotBuyDetail(id: number): SpotBuyDetail | null {
   const rawQuotes = db
     .prepare("SELECT * FROM quotes WHERE spot_buy_id=?")
     .all(id) as Quote[];
-  const ranked = rankQuotes(rawQuotes);
+  const ranked = rankQuotes(rawQuotes, rateToUsd);
   const quotes: QuoteRow[] = ranked.map((q) => ({
     ...q,
     supplier_name: orgName(db, q.supplier_org_id),
+    currency_known: isKnownCurrency(q.currency),
   }));
 
   const reqRaw =
@@ -884,9 +886,14 @@ export function buildRequisition(spotBuyId: number): number {
     .prepare("SELECT * FROM quotes WHERE spot_buy_id=? AND selected=1 LIMIT 1")
     .get(spotBuyId) as Quote | undefined;
   const now = nowIso();
-  const linesExtra = spotBuyLinesTotal(spotBuyId); // additional materials (#11)
+  const linesExtra = spotBuyLinesTotal(spotBuyId); // additional materials (#11), in USD
+  const currency = q?.currency ?? "USD";
+  // The quote total is in the quote's currency; line items are stored in USD.
+  // Convert the lines into the quote currency before summing so total_value is
+  // single-currency and total_value_base (below) isn't double-FX-converted.
   const total =
-    (q ? requisitionTotal(q.unit_price, q.quantity, q.freight_cost) : 0) + linesExtra;
+    (q ? requisitionTotal(q.unit_price, q.quantity, q.freight_cost) : 0) +
+    fromUsd(linesExtra, currency);
   const draft = {
     material_number: sb.material_number,
     material_desc: sb.material_desc,
@@ -898,7 +905,7 @@ export function buildRequisition(spotBuyId: number): number {
     unit_price: q?.unit_price ?? 0,
     freight_cost: q?.freight_cost ?? 0,
     total_value: total,
-    currency: q?.currency ?? "USD",
+    currency,
   };
   const missing = detectMissingFields(draft);
   const totalBase = toUsd(draft.total_value, draft.currency);
@@ -954,6 +961,10 @@ export function updateRequisition(
     | Requisition
     | undefined;
   if (!req) return;
+  // Only a draft is editable. Once submitted, the amount is frozen and an
+  // approval has already been routed at that figure — editing here would let the
+  // approved DOA band diverge from the real total (financial-control bypass).
+  if (req.status !== "draft") return;
   const merged = {
     material_number: input.material_number ?? req.material_number,
     quantity: input.quantity ?? req.quantity,
@@ -963,7 +974,7 @@ export function updateRequisition(
   };
   const total =
     requisitionTotal(req.unit_price, merged.quantity, req.freight_cost) +
-    spotBuyLinesTotal(req.spot_buy_id);
+    fromUsd(spotBuyLinesTotal(req.spot_buy_id), req.currency);
   const missing = detectMissingFields(merged);
   const totalBase = toUsd(total, req.currency);
   db.prepare(
@@ -987,6 +998,9 @@ export function submitRequisition(reqId: number, personId: number | null): void 
     | Requisition
     | undefined;
   if (!req) return;
+  // Idempotency: only a draft can be submitted. A double-submit (double-click or
+  // a duplicate action) must not create a second approval + escalation job.
+  if (req.status !== "draft") return;
   db.prepare(
     "UPDATE requisitions SET status='submitted', submitted_at=?, submitted_by_person_id=? WHERE id=?"
   ).run(nowIso(), personId, reqId);
@@ -1471,6 +1485,12 @@ export interface RecordReceiptInput {
 export function recordGoodsReceipt(input: RecordReceiptInput, personId: number | null): number {
   const db = getDb();
   const sb = getSpotBuy(input.spot_buy_id)!;
+  // No receipts against an already-closed or cancelled buy — that would append a
+  // spurious over-receipt (cumulative > ordered) and a false variance exception
+  // to a cleanly-closed ledger.
+  if (sb.status === "closed" || sb.status === "cancelled") {
+    throw new Error("This spot buy is closed — no further goods receipts can be recorded.");
+  }
   const po = db
     .prepare("SELECT * FROM purchase_orders WHERE spot_buy_id=? ORDER BY id DESC LIMIT 1")
     .get(input.spot_buy_id) as PurchaseOrder | undefined;
@@ -1529,14 +1549,48 @@ export function recordGoodsReceipt(input: RecordReceiptInput, personId: number |
     { personId, stage: "receiving" }
   );
 
-  if (po && !isPartial && match === "matched") {
-    db.prepare("UPDATE purchase_orders SET status='closed' WHERE id=?").run(po.id);
+  // A clean close needs a released PO, a full receipt, a qty+price match, AND an
+  // actual invoice — "matched" alone can mean "no invoice was provided" (the
+  // price leg is skipped when invoice_amount is null), which must not authorize
+  // payment against a non-existent invoice.
+  const invoiced = input.invoice_amount != null;
+  const canClose = !!po && po.status === "released" && !isPartial && match === "matched" && invoiced;
+  if (canClose) {
+    db.prepare("UPDATE purchase_orders SET status='closed' WHERE id=?").run(po!.id);
     setStatus(db, input.spot_buy_id, "closed");
     logAudit(db, input.spot_buy_id, "system", "Spot buy closed", "3-way match clean — receipt = PO = invoice", { stage: "closed" });
   } else if (!isPartial && match !== "matched") {
     logAudit(db, input.spot_buy_id, "system", "3-way match exception", MATCH_LABEL[match], { stage: "receiving" });
+  } else if (!isPartial && !invoiced) {
+    logAudit(db, input.spot_buy_id, "system", "Awaiting supplier invoice", "Full quantity received; record the supplier invoice to complete the 3-way match", { stage: "receiving" });
   }
   return Number(info.lastInsertRowid);
+}
+
+// Buyer override to close a buy stuck on a 3-way-match variance (qty/price
+// outside tolerance). Records who accepted the variance and why, so the ledger
+// shows a human decision rather than the buy sitting in 'receiving' forever.
+export function reconcileReceipt(
+  spotBuyId: number,
+  personId: number | null,
+  note?: string | null
+): void {
+  const db = getDb();
+  const sb = getSpotBuy(spotBuyId);
+  if (!sb || sb.status !== "receiving") return;
+  const po = db
+    .prepare("SELECT * FROM purchase_orders WHERE spot_buy_id=? ORDER BY id DESC LIMIT 1")
+    .get(spotBuyId) as PurchaseOrder | undefined;
+  if (po) db.prepare("UPDATE purchase_orders SET status='closed' WHERE id=?").run(po.id);
+  setStatus(db, spotBuyId, "closed");
+  logAudit(
+    db,
+    spotBuyId,
+    "human",
+    "Variance reconciled — buy closed",
+    note && note.trim() ? note.trim() : "Buyer accepted the 3-way-match variance and closed the buy.",
+    { personId, stage: "closed" }
+  );
 }
 
 // ---- scheduled-job processor (#6) -----------------------------------------
@@ -1579,7 +1633,16 @@ export function processDueJobs(nowOverride?: string): JobRunResult {
       db.prepare("UPDATE scheduled_jobs SET status='done', attempts=attempts+1, done_at=? WHERE id=?").run(nowIso(), job.id);
       res.processed++;
     } catch {
-      db.prepare("UPDATE scheduled_jobs SET attempts=attempts+1 WHERE id=?").run(job.id);
+      // Cap retries so a persistently-throwing job doesn't get re-selected on
+      // every cron tick forever — cancel it after MAX_JOB_ATTEMPTS.
+      const MAX_JOB_ATTEMPTS = 5;
+      const row = db.prepare("SELECT attempts FROM scheduled_jobs WHERE id=?").get(job.id) as { attempts: number } | undefined;
+      const attempts = (row?.attempts ?? 0) + 1;
+      db.prepare("UPDATE scheduled_jobs SET attempts=?, status=? WHERE id=?").run(
+        attempts,
+        attempts >= MAX_JOB_ATTEMPTS ? "cancelled" : "pending",
+        job.id
+      );
     }
   }
   return res;

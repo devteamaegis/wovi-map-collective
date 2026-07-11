@@ -62,7 +62,7 @@ export function needsThatNeedYou(limit = 6): NeedSummary[] {
     .prepare(
       `SELECT n.id, n.title, n.kind, n.status, n.priority, n.material_tag, n.target_region,
               o.name AS requester_org_name,
-              (SELECT COUNT(*) FROM paths WHERE need_id = n.id) AS path_count
+              (SELECT COUNT(*) FROM paths WHERE need_id = n.id AND status NOT IN ('dead','declined')) AS path_count
        FROM needs n LEFT JOIN organizations o ON o.id = n.requester_org_id
        WHERE n.status IN ('open','brokering')
        ORDER BY CASE n.priority WHEN 'high' THEN 0 WHEN 'med' THEN 1 ELSE 2 END,

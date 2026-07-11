@@ -150,20 +150,33 @@ export function isSafeWebhookUrl(raw: string): boolean {
     return false;
   }
   if (u.protocol !== "https:" && u.protocol !== "http:") return false;
-  const host = u.hostname.toLowerCase();
-  if (host === "localhost" || host.endsWith(".localhost") || host === "0.0.0.0") return false;
-  // Cloud metadata endpoints.
-  if (host === "169.254.169.254" || host === "metadata.google.internal") return false;
+  let host = u.hostname.toLowerCase();
+  // Strip IPv6 brackets.
+  if (host.startsWith("[") && host.endsWith("]")) host = host.slice(1, -1);
+  // Named hosts we always block.
+  if (host === "localhost" || host.endsWith(".localhost") || host === "metadata.google.internal") {
+    return false;
+  }
   // IPv6 loopback / link-local / unique-local.
-  if (host === "::1" || host.startsWith("fe80") || host.startsWith("fc") || host.startsWith("fd")) return false;
-  // IPv4 private / loopback / link-local ranges.
-  const m = host.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
+  if (host === "::1" || host.startsWith("fe80") || host.startsWith("fc") || host.startsWith("fd")) {
+    return false;
+  }
+  // Reject non-dotted-quad numeric IP encodings that resolve to a raw address:
+  // decimal (2130706433), hex (0x7f000001), and short forms (127.1). Only a
+  // proper 4-octet dotted quad or a real hostname is allowed through.
+  if (/^\d+$/.test(host) || /^0x[0-9a-f]+$/.test(host)) return false;
+  if (/^[0-9.]+$/.test(host) && !/^\d{1,3}(\.\d{1,3}){3}$/.test(host)) return false;
+  // IPv4-mapped IPv6 (::ffff:127.0.0.1) — evaluate the embedded v4 address.
+  const v4mapped = host.match(/^::ffff:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})$/);
+  const ipv4 = v4mapped ? v4mapped[1] : host;
+  const m = ipv4.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
   if (m) {
     const [a, b] = [Number(m[1]), Number(m[2])];
-    if (a === 10 || a === 127) return false;
+    if (a === 0 || a === 10 || a === 127) return false; // this-host / private / loopback
     if (a === 192 && b === 168) return false;
-    if (a === 169 && b === 254) return false;
+    if (a === 169 && b === 254) return false; // link-local + cloud metadata (169.254.169.254)
     if (a === 172 && b >= 16 && b <= 31) return false;
+    if (a === 100 && b >= 64 && b <= 127) return false; // CGNAT (RFC 6598)
   }
   return true;
 }
