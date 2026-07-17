@@ -41,28 +41,51 @@ export async function parseQuoteText(text: string): Promise<ParseResult> {
 
 async function llmParse(text: string, key: string): Promise<Partial<ParsedQuote> | null> {
   const base = process.env.WOVI_AI_BASE_URL || "https://api.anthropic.com";
-  const model = process.env.WOVI_AI_MODEL || "claude-sonnet-5";
+  // Provider: explicit WOVI_AI_PROVIDER wins; otherwise inferred from the base
+  // URL (anthropic.com → Anthropic, anything else → OpenAI-compatible).
+  const explicit = (process.env.WOVI_AI_PROVIDER || "").toLowerCase();
+  const provider =
+    explicit === "openai" || explicit === "anthropic"
+      ? explicit
+      : /anthropic\.com/.test(base)
+        ? "anthropic"
+        : "openai";
+  const model =
+    process.env.WOVI_AI_MODEL || (provider === "openai" ? "gpt-4o-mini" : "claude-sonnet-5");
   const prompt = `Extract these fields from the supplier quote as strict JSON with keys unit_price, quantity, lead_time_days, freight_cost, moq (numbers or null), incoterm (string or null), currency (ISO code). Reply with JSON only.\n\nQUOTE:\n${text.slice(0, 4000)}`;
 
-  // Anthropic Messages API shape (default). For OpenAI-compatible gateways set
-  // WOVI_AI_BASE_URL to that host; the request below still works for Anthropic.
-  const res = await fetch(`${base}/v1/messages`, {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-      "x-api-key": key,
-      "anthropic-version": "2023-06-01",
-    },
-    body: JSON.stringify({
-      model,
-      max_tokens: 400,
-      messages: [{ role: "user", content: prompt }],
-    }),
-    signal: AbortSignal.timeout(15000),
-  });
-  if (!res.ok) return null;
-  const data = (await res.json()) as any;
-  const content: string = data?.content?.[0]?.text ?? "";
+  let content = "";
+  if (provider === "anthropic") {
+    const res = await fetch(`${base}/v1/messages`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-api-key": key,
+        "anthropic-version": "2023-06-01",
+      },
+      body: JSON.stringify({ model, max_tokens: 400, messages: [{ role: "user", content: prompt }] }),
+      signal: AbortSignal.timeout(15000),
+    });
+    if (!res.ok) return null;
+    const data = (await res.json()) as any;
+    content = data?.content?.[0]?.text ?? "";
+  } else {
+    // OpenAI-compatible Chat Completions (OpenAI, Together, Groq, OpenRouter,
+    // Vercel AI Gateway, Ollama, …).
+    const res = await fetch(`${base}/v1/chat/completions`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        authorization: `Bearer ${key}`,
+      },
+      body: JSON.stringify({ model, max_tokens: 400, messages: [{ role: "user", content: prompt }] }),
+      signal: AbortSignal.timeout(15000),
+    });
+    if (!res.ok) return null;
+    const data = (await res.json()) as any;
+    content = data?.choices?.[0]?.message?.content ?? "";
+  }
+
   const match = content.match(/\{[\s\S]*\}/);
   if (!match) return null;
   const parsed = JSON.parse(match[0]);

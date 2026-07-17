@@ -208,9 +208,28 @@ export function findPaths(
       (materialTag ? matchesTag(o, materialTag) : true)
   );
   if (region) {
-    const inRegion = candidates.filter(
-      (o) => (o.region || "").toLowerCase() === region.toLowerCase()
-    );
+    // Region preference is a soft filter (falls back to all candidates if none
+    // match). Match on the org's region OR country, with substring matching and
+    // a small region→countries map so a broad query like "Southeast Asia" still
+    // matches country-granularity orgs ("Vietnam", "Thailand").
+    const q = region.toLowerCase().trim();
+    const REGION_COUNTRIES: Record<string, string[]> = {
+      "southeast asia": ["vietnam", "thailand", "malaysia", "indonesia", "philippines", "singapore", "cambodia", "myanmar", "laos"],
+      "east asia": ["china", "japan", "south korea", "korea", "taiwan", "hong kong", "mongolia"],
+      "south asia": ["india", "pakistan", "bangladesh", "sri lanka", "nepal"],
+      asia: ["china", "japan", "korea", "india", "vietnam", "thailand", "taiwan", "singapore", "malaysia", "indonesia"],
+      europe: ["germany", "france", "italy", "spain", "poland", "netherlands", "belgium", "norway", "sweden", "uk", "united kingdom", "turkey", "czechia", "czech republic", "austria", "switzerland"],
+      "north america": ["united states", "usa", "canada", "mexico"],
+      "middle east": ["saudi arabia", "uae", "united arab emirates", "qatar", "turkey", "israel"],
+    };
+    const inList = REGION_COUNTRIES[q] || [];
+    const inRegion = candidates.filter((o) => {
+      const r = (o.region || "").toLowerCase();
+      const c = (o.country || "").toLowerCase();
+      if (r && (r === q || r.includes(q) || (q.includes(r) && r.length > 2))) return true;
+      if (c && (c === q || (q.includes(c) && c.length > 2))) return true;
+      return !!c && inList.some((x) => c.includes(x) || x.includes(c));
+    });
     if (inRegion.length) candidates = inRegion;
   }
 

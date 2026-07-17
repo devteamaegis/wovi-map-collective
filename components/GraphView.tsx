@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { Crosshair, Plus, Maximize2, SlidersHorizontal, X } from "lucide-react";
 import type { GraphData, GraphNode, GraphLink } from "@/lib/repos/graph";
 import { Drawer } from "./Drawer";
@@ -41,18 +41,25 @@ const ALL_KINDS = ["buyer", "supplier", "broker", "facility", "person"];
 
 export function GraphView({ data }: { data: GraphData }) {
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const fgRef = useRef<any>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ w: 800, h: 600 });
 
-  const [filters, setFilters] = useState<Filters>({
-    kinds: new Set(ALL_KINDS),
-    tag: "all",
-    region: "all",
-    minConfidence: 0,
-    consent: "all",
+  // Filters/focus are seeded from the URL so a filtered relationship view is
+  // linkable and bookmarkable (kept in sync as the URL query below).
+  const [filters, setFilters] = useState<Filters>(() => {
+    const kindsParam = searchParams.get("kinds");
+    return {
+      kinds: kindsParam != null ? new Set(kindsParam.split(",").filter(Boolean)) : new Set(ALL_KINDS),
+      tag: searchParams.get("tag") || "all",
+      region: searchParams.get("region") || "all",
+      minConfidence: Number(searchParams.get("minConf") || 0) || 0,
+      consent: searchParams.get("consent") || "all",
+    };
   });
-  const [focusQuery, setFocusQuery] = useState("");
+  const [focusQuery, setFocusQuery] = useState(() => searchParams.get("focus") || "");
   // Honor prefers-reduced-motion for the canvas particle animation (the CSS
   // media block can't reach react-force-graph's rAF loop).
   const reduceMotion = useMemo(
@@ -69,6 +76,21 @@ export function GraphView({ data }: { data: GraphData }) {
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [showAddEdge, setShowAddEdge] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false); // mobile filter sheet
+
+  // Reflect the current filters/focus into the URL (shareable, bookmarkable).
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (filters.kinds.size !== ALL_KINDS.length) {
+      params.set("kinds", ALL_KINDS.filter((k) => filters.kinds.has(k)).join(","));
+    }
+    if (filters.tag !== "all") params.set("tag", filters.tag);
+    if (filters.region !== "all") params.set("region", filters.region);
+    if (filters.minConfidence > 0) params.set("minConf", String(filters.minConfidence));
+    if (filters.consent !== "all") params.set("consent", filters.consent);
+    if (focusQuery.trim()) params.set("focus", focusQuery.trim());
+    const qs = params.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+  }, [filters, focusQuery, pathname, router]);
 
   // Measure container.
   useEffect(() => {

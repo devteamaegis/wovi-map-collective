@@ -997,7 +997,11 @@ export function updateRequisition(
 }
 
 // Stage 5 — submit requisition → route to the DOA approver by threshold.
-export function submitRequisition(reqId: number, personId: number | null): void {
+export function submitRequisition(
+  reqId: number,
+  personId: number | null,
+  expectedVersion?: number | null
+): void {
   const db = getDb();
   const req = db.prepare("SELECT * FROM requisitions WHERE id=?").get(reqId) as
     | Requisition
@@ -1006,6 +1010,8 @@ export function submitRequisition(reqId: number, personId: number | null): void 
   // Idempotency: only a draft can be submitted. A double-submit (double-click or
   // a duplicate action) must not create a second approval + escalation job.
   if (req.status !== "draft") return;
+  // Optimistic lock (#15): refuse if the buy advanced since the client loaded it.
+  assertVersion(db, req.spot_buy_id, expectedVersion ?? undefined);
   db.prepare(
     "UPDATE requisitions SET status='submitted', submitted_at=?, submitted_by_person_id=? WHERE id=?"
   ).run(nowIso(), personId, reqId);

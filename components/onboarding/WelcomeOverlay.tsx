@@ -155,7 +155,7 @@ export function WelcomeOverlay({
                   aria-label={`Go to step ${k + 1}`}
                   aria-current={k === i}
                   onClick={() => setI(k)}
-                  className="group flex h-6 items-center px-0.5" /* 24px hit area */
+                  className="group flex h-6 min-w-6 items-center justify-center px-0.5" /* 24x24 min tap target (WCAG 2.5.8) */
                 >
                   <span
                     className={`block h-1 rounded-full transition-all ${

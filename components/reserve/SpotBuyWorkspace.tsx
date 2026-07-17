@@ -143,9 +143,15 @@ function Stage({
 export function SpotBuyWorkspace({ detail }: { detail: Detail }) {
   const router = useRouter();
   const [pending, start] = useTransition();
+  const [actionError, setActionError] = useState<string | null>(null);
   const run = (fn: () => Promise<unknown>) =>
     start(async () => {
-      await fn();
+      setActionError(null);
+      const r = (await fn()) as { ok?: boolean; error?: string } | undefined;
+      if (r && r.ok === false) {
+        setActionError(r.error || "Something went wrong.");
+        return;
+      }
       router.refresh();
     });
 
@@ -184,6 +190,18 @@ export function SpotBuyWorkspace({ detail }: { detail: Detail }) {
 
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+      {actionError ? (
+        <div className="flex items-start justify-between gap-3 rounded-lg border border-[#e0b4ae] bg-[#fbeceb] px-4 py-2.5 text-[13px] text-danger lg:col-span-3">
+          <span>{actionError}</span>
+          <button
+            onClick={() => setActionError(null)}
+            className="shrink-0 font-medium"
+            aria-label="Dismiss error"
+          >
+            ✕
+          </button>
+        </div>
+      ) : null}
       {/* Pipeline column */}
       <div className="space-y-4 lg:col-span-2">
         {/* 3-phase stepper */}
@@ -330,7 +348,7 @@ export function SpotBuyWorkspace({ detail }: { detail: Detail }) {
               </button>
             </div>
           ) : (
-            <RequisitionPanel req={req} actor={actor} onRun={run} pending={pending} />
+            <RequisitionPanel req={req} actor={actor} version={sb.version} onRun={run} pending={pending} />
           )}
         </Stage>
 
@@ -690,7 +708,7 @@ function QuoteTable({ quotes, actor, onRun, pending }: any) {
   );
 }
 
-function RequisitionPanel({ req, actor, onRun, pending }: any) {
+function RequisitionPanel({ req, actor, version, onRun, pending }: any) {
   const [material, setMaterial] = useState(req.material_number || "");
   const [cc, setCc] = useState(req.cost_center || "");
   const [needBy, setNeedBy] = useState(
@@ -782,7 +800,7 @@ function RequisitionPanel({ req, actor, onRun, pending }: any) {
               Save fields
             </button>
             <button
-              onClick={() => onRun(() => submitRequisitionAction(req.id, actor))}
+              onClick={() => onRun(() => submitRequisitionAction(req.id, actor, version))}
               disabled={pending || missing.length > 0}
               className="btn btn-primary btn-sm"
               title={missing.length ? "Fill flagged fields first" : ""}

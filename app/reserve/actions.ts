@@ -178,9 +178,19 @@ export async function updateRequisitionAction(
   updateRequisition(reqId, input);
   rall();
 }
-export async function submitRequisitionAction(reqId: number, _personId?: number | null) {
+export async function submitRequisitionAction(
+  reqId: number,
+  _personId?: number | null,
+  expectedVersion?: number | null
+): Promise<ActionResult> {
   const pid = await actorPid();
-  submitRequisition(reqId, pid);
+  try {
+    submitRequisition(reqId, pid, expectedVersion ?? null);
+  } catch (e) {
+    if (e instanceof StaleWriteError)
+      return { ok: false, error: "This buy changed since you opened it — refresh and try again." };
+    throw e;
+  }
   const db = getDb();
   const req = db
     .prepare("SELECT spot_buy_id, total_value, currency FROM requisitions WHERE id=?")
@@ -195,6 +205,7 @@ export async function submitRequisitionAction(reqId: number, _personId?: number 
     await deliverPendingEmails();
   }
   rall();
+  return { ok: true };
 }
 
 // SoD- and role-enforced approval decision (#1). Returns a structured result so

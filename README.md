@@ -261,6 +261,11 @@ compiler — no extra deps) and asserts against the **real source**:
   decimals, word-boundary keywords, lead-time vs validity windows)
 - EDI-850 / cXML builders (structure + delimiter-injection sanitizing)
 
+Continuous integration (`.github/workflows/ci.yml`) runs the typecheck, the test
+suite above, and a production build on every push/PR — plus an **axe-core
+accessibility gate** (`npm run a11y`, Playwright against a running server) that
+fails the build on any WCAG 2.0/2.1/2.2 A/AA violation across the key pages.
+
 ---
 
 ## Environment variables

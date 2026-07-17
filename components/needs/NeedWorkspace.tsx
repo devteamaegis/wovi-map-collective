@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -499,10 +500,23 @@ function PathPanel({
                     </div>
                   </div>
                 ))}
+                {!path.consents.some((c: any) => c.side === "supplier") &&
+                path.status !== "consented" ? (
+                  <div className="rounded-lg border border-[#e6c9a0] bg-[#fbf3e9] px-3 py-2 text-[12px] text-[#8a5d21]">
+                    <span className="font-medium">No supplier-side contact</span> at
+                    the target organization, so double opt-in can&apos;t complete.{" "}
+                    <Link href="/directory/person/new" className="link-accent underline">
+                      Add a contact
+                    </Link>{" "}
+                    there, then start double opt-in again.
+                  </div>
+                ) : null}
                 {path.status === "consented" ? (
                   <div className="flex items-center gap-2 rounded-lg bg-[#e4efea] px-3 py-2 text-[12px] text-good-text">
-                    <CheckCircle2 size={14} /> Double opt-in reached — a consented
-                    intro edge has formed and the graph strengthened.
+                    <CheckCircle2 size={14} />{" "}
+                    {path.consents.some((c: any) => c.edge_id != null)
+                      ? "Double opt-in reached — a consented intro edge has formed and the graph strengthened."
+                      : "Double opt-in reached — both sides consented."}
                   </div>
                 ) : null}
               </div>
