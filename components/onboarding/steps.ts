@@ -67,9 +67,9 @@ export const WELCOME_STEPS: WelcomeStep[] = [
   },
   {
     id: "compounds",
-    eyebrow: "05 — Why it compounds",
-    title: [{ t: "The manual work is " }, { t: "the moat.", em: true }],
-    body: "Every consented intro raises confidence and forms new edges. The map you build can't be scraped or copied — it's earned, one real relationship at a time.",
+    eyebrow: "05 — Why it lasts",
+    title: [{ t: "Built one real " }, { t: "relationship at a time.", em: true }],
+    body: "Every consented intro raises confidence and adds an edge. The map is built from relationships you earned, not data you scraped.",
     cta: "Enter the console",
     variant: "compounds",
   },

@@ -19,3 +19,6 @@ wovi.db-shm
 .swarm/
 *.tsbuildinfo
 .vercel
+
+# CI workflow kept out of git pushes (token lacks GitHub workflow scope); add via GitHub UI or a workflow-scoped token
+.github/
