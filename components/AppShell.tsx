@@ -49,16 +49,7 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
             <NavLinks />
           </div>
 
-          <div className="mt-auto space-y-3 px-5 pb-6 pt-4">
-            <div className="rounded-lg border border-white/10 bg-white/[0.04] px-3 py-3">
-              <p className="serif text-[13px] leading-snug text-white/85">
-                The manual work is{" "}
-                <span className="italic text-accent-2">the moat.</span>
-              </p>
-              <p className="mt-1.5 text-[11px] leading-relaxed text-white/60">
-                Every consented intro compounds into the graph.
-              </p>
-            </div>
+          <div className="mt-auto px-5 pb-6 pt-4">
             <TourButton />
           </div>
         </aside>

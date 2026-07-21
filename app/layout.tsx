@@ -1,15 +1,15 @@
 import type { Metadata } from "next";
-import { Newsreader, Inter, IBM_Plex_Mono } from "next/font/google";
+import { Fraunces, Hanken_Grotesk, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 import { AppShell } from "@/components/AppShell";
 
-const serif = Newsreader({
+const serif = Fraunces({
   subsets: ["latin"],
   style: ["normal", "italic"],
   variable: "--font-newsreader",
   display: "swap",
 });
-const sans = Inter({
+const sans = Hanken_Grotesk({
   subsets: ["latin"],
   variable: "--font-inter",
   display: "swap",

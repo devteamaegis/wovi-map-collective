@@ -31,10 +31,10 @@ import { timeAgo } from "@/lib/format";
 export const dynamic = "force-dynamic";
 
 const LOOP = [
-  ["One need", "stated plainly"],
-  ["One useful path", "a single trusted route"],
-  ["Double opt-in", "both sides consent"],
-  ["Outcome compounds", "the graph strengthens"],
+  ["State the need", "plainly"],
+  ["Find one path", "a single trusted route"],
+  ["Both sides opt in", "consent on record"],
+  ["Record the outcome", "the map gets better"],
 ];
 
 export default function DashboardPage() {
@@ -56,13 +56,13 @@ export default function DashboardPage() {
           <Eyebrow light>01 Relationship Intelligence</Eyebrow>
           <h1 className="serif mt-4 text-[28px] leading-[1.12] tracking-tight sm:text-4xl">
             Forward-looking supply-chain{" "}
-            <span className="italic text-accent-2">relational data.</span>
+            <span className="italic text-accent-2">relationships.</span>
           </h1>
           <p className="mt-4 max-w-xl text-[15px] leading-relaxed text-white/65">
             Customs and shipment records only show what already shipped. Wovi
-            records the informal relationships sourcing actually runs on — who can
-            source what, from whom, and through which trusted path — before a
-            transaction happens.
+            records the relationships sourcing actually runs on: who can source
+            what, from whom, and through which trusted path, before a transaction
+            happens.
           </p>
           <div className="mt-6 grid grid-cols-2 gap-2.5 sm:mt-7 sm:flex sm:flex-wrap">
             {LOOP.map(([a, b], i) => (
@@ -103,7 +103,7 @@ export default function DashboardPage() {
         {/* Needs that need you */}
         <div className="lg:col-span-2">
           <div className="mb-3 flex items-center justify-between">
-            <Eyebrow as="h2">Needs that need you</Eyebrow>
+            <Eyebrow as="h2">Open needs</Eyebrow>
             <Link href="/needs" className="link-accent text-[13px]">
               All needs →
             </Link>
@@ -160,7 +160,7 @@ export default function DashboardPage() {
 
           {/* Recently strengthened */}
           <div className="mb-3 mt-8 flex items-center gap-2">
-            <Eyebrow as="h2">Recently strengthened</Eyebrow>
+            <Eyebrow as="h2">Recently updated</Eyebrow>
           </div>
           {strengthened.length === 0 ? (
             <Card className="px-4 py-4 text-sm text-ink-3">
